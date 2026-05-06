@@ -10,7 +10,6 @@
 		necessary: boolean;
 		functional: boolean;
 		analytics: boolean;
-		marketing: boolean;
 	}
 
 	let showBanner = $state(false);
@@ -19,8 +18,7 @@
 	let preferences = $state<ConsentPreferences>({
 		necessary: true,
 		functional: false,
-		analytics: false,
-		marketing: false
+		analytics: false
 	});
 
 	const STORAGE_KEY = 'cookie-consent-preferences';
@@ -78,8 +76,7 @@
 		preferences = {
 			necessary: true,
 			functional: true,
-			analytics: true,
-			marketing: true
+			analytics: true
 		};
 		savePreferences();
 		applyConsent();
@@ -91,8 +88,7 @@
 		preferences = {
 			necessary: true,
 			functional: false,
-			analytics: false,
-			marketing: false
+			analytics: false
 		};
 		savePreferences();
 		applyConsent();
@@ -219,21 +215,6 @@
 				</div>
 			</div>
 
-			<!-- 营销 Cookie -->
-			<div class="space-y-3">
-				<div class="flex items-start gap-3">
-					<Checkbox bind:checked={preferences.marketing} class="mt-1" />
-					<div class="flex-1">
-						<h3 class="font-semibold">营销 Cookie</h3>
-						<p class="text-sm text-muted-foreground mt-1 mb-2">
-							这些 Cookie 用于跟踪访问者并显示相关广告。
-						</p>
-						<ul class="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-							<li>Google AdSense - 广告投放</li>
-						</ul>
-					</div>
-				</div>
-			</div>
 		</div>
 
 		<Dialog.Footer>

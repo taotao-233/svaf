@@ -5,7 +5,6 @@
 		necessary: boolean;
 		functional: boolean;
 		analytics: boolean;
-		marketing: boolean;
 	}
 
 	let scriptsLoaded = $state({
@@ -14,8 +13,7 @@
 		cfUmami: false,
 		baidu: false,
 		google: false,
-		clarity: false,
-		adsense: false
+		clarity: false
 	});
 
 	onMount(() => {
@@ -70,13 +68,6 @@
 			}
 		}
 
-		// 营销追踪器
-		if (preferences.marketing) {
-			if (!scriptsLoaded.adsense) {
-				loadAdSense();
-				scriptsLoaded.adsense = true;
-			}
-		}
 	}
 
 	function loadUmami() {
@@ -146,11 +137,4 @@
 		document.head.appendChild(script);
 	}
 
-	function loadAdSense() {
-		const script = document.createElement('script');
-		script.async = true;
-		script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1683686345039700';
-		script.crossOrigin = 'anonymous';
-		document.head.appendChild(script);
-	}
 </script>
