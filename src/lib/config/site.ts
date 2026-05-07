@@ -82,7 +82,23 @@ export const siteConfig = {
 	},
 	links: {
 		github: 'https://github.com/afoim/svaf'
-	}
+	},
+	navLinks: [
+		{ label: '博客', icon: 'mdi:post-outline', href: '/posts' },
+		{ label: '论坛', icon: 'mdi:forum', href: '/forum', highlight: true, badge: 'NEW' },
+		{ label: 'AI 生图', icon: 'mdi:palette', href: 'https://ai.2x.nz' },
+		{ label: '课程表', icon: 'mdi:calendar-month', href: '/timetable' },
+		{ label: '封面制作', icon: 'mdi:image-edit', href: '/cover' },
+		{ label: '画廊', icon: 'mdi:image-multiple', href: '/gallery' },
+		{ label: '隐藏图', icon: 'mdi:layers-triple', href: '/ptg' },
+		{ label: '文件', icon: 'mdi:folder-open', href: '/files' },
+		{ label: '零宽短链', icon: 'mynaui:zero-circle-solid', href: '/short' },
+		{ label: '长链', icon: 'mdi:link-variant-plus', href: '/long' },
+		{ label: 'NAT 检测', icon: 'mdi:lan-check', href: '/nat' },
+		{ label: '友链', icon: 'mdi:link-variant', href: '/friends' },
+		{ label: '赞助', icon: 'mdi:heart', href: '/sponsors' },
+		{ label: '统计', icon: 'mdi:chart-line', href: 'https://u.2x.nz/share/CdkXbGgZr6ECKOyK' }
+	] as const
 };
 
 export type SiteConfig = typeof siteConfig;

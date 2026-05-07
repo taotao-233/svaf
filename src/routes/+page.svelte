@@ -175,107 +175,25 @@
 	<Separator class="max-w-xs" />
 
 	<div class="flex flex-wrap gap-3 justify-center">
-		<a href="/posts">
-			<Button class="flex items-center gap-2">
-				<Icon icon="mdi:post-outline" class="w-5 h-5" />
-				博客
-			</Button>
-		</a>
-		
-		<a href="/forum">
-			<Button class="flex items-center gap-2 ring-2 ring-primary/40 shadow-md shadow-primary/20">
-				<Icon icon="mdi:forum" class="w-5 h-5" />
-				论坛
-				<Badge variant="secondary" class="ml-0.5">NEW</Badge>
-			</Button>
-		</a>
+		{#each siteConfig.navLinks as link}
+			{@const isExternal = link.href.startsWith('http')}
+			<a href={link.href} {...isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {}}>
+				<Button
+					variant={link.highlight ? 'default' : 'outline'}
+					class="flex items-center gap-2 {link.highlight ? 'ring-2 ring-primary/40 shadow-md shadow-primary/20' : ''}"
+				>
+					<Icon icon={link.icon} class="w-5 h-5" />
+					{link.label}
+					{#if link.badge}
+						<Badge variant="secondary" class="ml-0.5">{link.badge}</Badge>
+					{/if}
+					{#if isExternal}
+						<Icon icon="mdi:open-in-new" class="w-3.5 h-3.5 opacity-60" />
+					{/if}
+				</Button>
+			</a>
+		{/each}
 
-		<a href={siteConfig.services.aiDraw} target="_blank" rel="noopener noreferrer">
-			<Button variant="outline" class="flex items-center gap-2">
-				<Icon icon="mdi:palette" class="w-5 h-5" />
-				AI 生图
-				<Icon icon="mdi:open-in-new" class="w-3.5 h-3.5 opacity-60" />
-			</Button>
-		</a>
-
-		<a href="/timetable">
-			<Button variant="outline" class="flex items-center gap-2">
-				<Icon icon="mdi:calendar-month" class="w-5 h-5" />
-				课程表
-			</Button>
-		</a>
-		
-		<a href="/cover">
-			<Button variant="outline" class="flex items-center gap-2">
-				<Icon icon="mdi:image-edit" class="w-5 h-5" />
-				封面制作
-			</Button>
-		</a>
-		
-		<a href="/gallery">
-			<Button variant="outline" class="flex items-center gap-2">
-				<Icon icon="mdi:image-multiple" class="w-5 h-5" />
-				画廊
-			</Button>
-		</a>
-		
-		<a href="/ptg">
-			<Button variant="outline" class="flex items-center gap-2">
-				<Icon icon="mdi:layers-triple" class="w-5 h-5" />
-				隐藏图
-			</Button>
-		</a>
-		
-		<a href="/files">
-			<Button variant="outline" class="flex items-center gap-2">
-				<Icon icon="mdi:folder-open" class="w-5 h-5" />
-				文件
-			</Button>
-		</a>
-		
-		<a href="/short">
-			<Button variant="outline" class="flex items-center gap-2">
-				<Icon icon="mynaui:zero-circle-solid" class="w-5 h-5" />
-				零宽短链
-			</Button>
-		</a>
-		
-		<a href="/long">
-			<Button variant="outline" class="flex items-center gap-2">
-				<Icon icon="mdi:link-variant-plus" class="w-5 h-5" />
-				长链
-			</Button>
-		</a>
-		
-		<a href="/nat">
-			<Button variant="outline" class="flex items-center gap-2">
-				<Icon icon="mdi:lan-check" class="w-5 h-5" />
-				NAT 检测
-			</Button>
-		</a>
-		
-		<a href="/friends">
-			<Button variant="outline" class="flex items-center gap-2">
-				<Icon icon="mdi:link-variant" class="w-5 h-5" />
-				友链
-			</Button>
-		</a>
-		
-		<a href="/sponsors">
-			<Button variant="outline" class="flex items-center gap-2">
-				<Icon icon="mdi:heart" class="w-5 h-5" />
-				赞助
-			</Button>
-		</a>
-		
-		<a href={siteConfig.services.statsShare} target="_blank" rel="noopener noreferrer">
-			<Button variant="outline" class="flex items-center gap-2">
-				<Icon icon="mdi:chart-line" class="w-5 h-5" />
-				统计
-				<Icon icon="mdi:open-in-new" class="w-3.5 h-3.5 opacity-60" />
-			</Button>
-		</a>
-		
 		<a href="#" id="open_preferences_center">
 			<Button variant="outline" class="flex items-center gap-2">
 				<Icon icon="mdi:cookie-settings" class="w-5 h-5" />
