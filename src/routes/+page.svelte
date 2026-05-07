@@ -160,7 +160,7 @@
 					<Icon 
 						icon={link.icon} 
 						class="w-5 h-5"
-						style={link.name === 'QQ群' ? 'color: #333333' : 
+						style={link.name === 'QQ群' ? 'color: #12B7F5' : 
 						       link.name === 'Telegram群' ? 'color: #0088cc' : 
 						       link.name === 'Bilibili' ? 'color: #fb7299' : 
 						       link.name === 'GitHub' ? 'color: #333333' : 
