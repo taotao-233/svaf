@@ -7,6 +7,8 @@
 	import * as Pagination from '$lib/components/ui/pagination';
 	import Icon from '@iconify/svelte';
 	import { siteConfig } from '$lib/config/site';
+	import { slide } from 'svelte/transition';
+	import { quintOut } from 'svelte/easing';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -336,8 +338,10 @@
 										<span class="text-sm text-muted-foreground">约 {getPostStats(post.slug)!.readTime} 分钟</span>
 									{/if}
 									{#if pageViews[post.slug]}
-										<span class="text-sm text-muted-foreground">·</span>
-										<span class="text-sm text-muted-foreground">{pageViews[post.slug].toLocaleString()} 次浏览</span>
+										<div class="inline" transition:slide={{ duration: 350, easing: quintOut }}>
+											<span class="text-sm text-muted-foreground">·</span>
+											<span class="text-sm text-muted-foreground">{pageViews[post.slug].toLocaleString()} 次浏览</span>
+										</div>
 									{/if}
 								</div>
 								
