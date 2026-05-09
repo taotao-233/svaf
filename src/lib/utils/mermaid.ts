@@ -87,9 +87,10 @@ export async function renderMermaidIn(container: HTMLElement | null | undefined)
 	console.log(`[mermaid] found ${candidates.size} blocks in container`);
 
 	const mermaid = await getMermaid();
-	if (!initialized) {
-		const isDark = document.documentElement.classList.contains('dark');
-		lastTheme = isDark ? 'dark' : 'default';
+	const isDark = document.documentElement.classList.contains('dark');
+	const currentTheme = isDark ? 'dark' : 'default';
+	if (!initialized || currentTheme !== lastTheme) {
+		lastTheme = currentTheme;
 		mermaid.initialize({
 			startOnLoad: false,
 			theme: lastTheme,
@@ -131,7 +132,6 @@ export async function rerenderAllMermaid() {
 	const newTheme = isDark ? 'dark' : 'default';
 	if (newTheme === lastTheme) return;
 
-	initialized = false;
 	lastTheme = newTheme;
 	mermaid.initialize({
 		startOnLoad: false,
@@ -139,7 +139,6 @@ export async function rerenderAllMermaid() {
 		securityLevel: 'loose',
 		fontFamily: 'inherit'
 	});
-	initialized = true;
 
 	let i = 0;
 	for (const [wrapper, code] of renderedBlocks) {
