@@ -19,6 +19,12 @@ export const siteConfig = {
 		bio: 'Protect What You Love.',
 		links: [
 			{
+				name: 'B站主页',
+				icon: 'simple-icons:bilibili',
+				url: 'https://space.bilibili.com/325903362',
+				color: '#fb7299'
+			},
+			{
 				name: 'QQ群',
 				icon: '/icon/QQ.svg',
 				url: 'https://qm.qq.com/q/FWqOHlwL2m'
@@ -28,12 +34,6 @@ export const siteConfig = {
 				icon: 'simple-icons:telegram',
 				url: 'https://t.me/+_07DERp7k1ljYTc1',
 				color: '#0088cc'
-			},
-			{
-				name: 'Bilibili',
-				icon: 'simple-icons:bilibili',
-				url: 'https://space.bilibili.com/325903362',
-				color: '#fb7299'
 			},
 			{
 				name: 'GitHub',
