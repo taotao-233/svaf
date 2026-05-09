@@ -244,13 +244,6 @@
 
 	<!-- 赞助商 -->
 	<div class="w-full max-w-2xl mx-auto mo-fade-in-up" use:fadeInUp={{ delay: 0.4 }}>
-		<Card class="relative overflow-hidden">
-			<CardHeader class="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-				<CardTitle class="text-center text-5xl font-black tracking-widest text-foreground/[0.04] dark:text-foreground/[0.06] select-none">赞助商</CardTitle>
-			</CardHeader>
-			<CardContent class="relative z-10 flex flex-col items-center">
-				<SponsorBanners />
-			</CardContent>
-		</Card>
+		<SponsorBanners />
 	</div>
 </div>
