@@ -168,7 +168,7 @@
 	</div>
 
 	<!-- 社交媒体链接 -->
-	<div class="w-full max-w-2xl mx-auto mo-fade-in-up" use:fadeInUp={{ delay: 0.2 }}>
+	<div class="w-full max-w-2xl mx-auto rounded-lg border p-6 mo-fade-in-up" use:fadeInUp={{ delay: 0.2 }}>
 		<h2 class="text-center text-sm font-medium text-muted-foreground mb-3">社交</h2>
 		<div class="flex flex-wrap gap-3 justify-center">
 			{#each siteConfig.bio.links as link}
@@ -192,7 +192,7 @@
 	</div>
 
 	<!-- 导航按钮 -->
-	<div class="w-full max-w-2xl mx-auto mo-fade-in-up" use:fadeInUp={{ delay: 0.3 }}>
+	<div class="w-full max-w-2xl mx-auto rounded-lg border p-6 mo-fade-in-up" use:fadeInUp={{ delay: 0.3 }}>
 		<h2 class="text-center text-sm font-medium text-muted-foreground mb-3">导航</h2>
 		<div class="flex flex-wrap gap-3 justify-center">
 			{#each siteConfig.navLinks as link}
@@ -230,7 +230,7 @@
 	</div>
 
 	<!-- 赞助商 -->
-	<div class="w-full max-w-2xl mx-auto flex flex-col items-center mo-fade-in-up" use:fadeInUp={{ delay: 0.4 }}>
+	<div class="w-full max-w-2xl mx-auto flex flex-col items-center rounded-lg border p-6 mo-fade-in-up" use:fadeInUp={{ delay: 0.4 }}>
 		<h2 class="text-center text-sm font-medium text-muted-foreground mb-3">赞助商</h2>
 		<SponsorBanners />
 	</div>
