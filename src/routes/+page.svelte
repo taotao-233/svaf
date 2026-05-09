@@ -16,7 +16,36 @@
 	
 	let isLive = $state<boolean>(false);
 	let pageViewsLoaded = $state(false);
-	
+	let statsLoaded = $state(false);
+	let totalPosts = $state(0);
+	let totalWords = $state(0);
+
+	function calculateWordCount(text: string): number {
+		const plainText = text.replace(/<[^>]*>/g, '');
+		const chineseChars = plainText.match(/[一-龥]/g) || [];
+		const englishWords = plainText.match(/[a-zA-Z]+/g) || [];
+		return chineseChars.length + englishWords.length;
+	}
+
+	async function loadPostStats() {
+		const stats = await spaCache.get('post-stats', async () => {
+			const response = await fetch('/rss.xml');
+			const text = await response.text();
+			const parser = new DOMParser();
+			const xml = parser.parseFromString(text, 'text/xml');
+			const items = xml.querySelectorAll('item');
+			let words = 0;
+			items.forEach(item => {
+				const content = item.querySelector('content\\:encoded, encoded')?.textContent || '';
+				words += calculateWordCount(content);
+			});
+			return { posts: items.length, words };
+		});
+		totalPosts = stats.posts;
+		totalWords = stats.words;
+		statsLoaded = true;
+	}
+
 	async function checkLiveStatus() {
 		isLive = await spaCache.get('live-status', async () => {
 			const response = await fetch(siteConfig.live.statusApi);
@@ -30,7 +59,8 @@
 	
 	onMount(() => {
 		checkLiveStatus();
-		
+		loadPostStats();
+
 		// 每 30 秒更新一次直播状态
 		const interval = setInterval(checkLiveStatus, 30000);
 		return () => clearInterval(interval);
@@ -154,6 +184,13 @@
 			<div transition:slide={{ duration: 350, easing: quintOut }}>
 				<p class="text-sm text-muted-foreground">
 					全站浏览量: <PageViews pathname="/" cacheKey="homepage-pageviews" />
+				</p>
+			</div>
+		{/if}
+		{#if statsLoaded}
+			<div transition:slide={{ duration: 350, easing: quintOut }}>
+				<p class="text-sm text-muted-foreground">
+					共 {totalPosts} 篇文章 · 总计 {totalWords.toLocaleString()} 字
 				</p>
 			</div>
 		{/if}
