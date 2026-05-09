@@ -375,9 +375,8 @@
 										<span class="text-sm text-muted-foreground">约 {getPostStats(post.slug)!.readTime} 分钟</span>
 									{/if}
 									{#if pageViews[post.slug] !== undefined}
-										<div class="inline" transition:slide={{ duration: 350, easing: quintOut }}>
-											<span class="text-sm text-muted-foreground">· {pageViews[post.slug].toLocaleString()} 次浏览</span>
-										</div>
+										<span class="text-sm text-muted-foreground">·</span>
+										<span class="text-sm text-muted-foreground" transition:slide={{ duration: 350, easing: quintOut }}>{pageViews[post.slug].toLocaleString()} 次浏览</span>
 									{/if}
 								</div>
 								
