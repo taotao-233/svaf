@@ -155,6 +155,9 @@
 			case 'status':
 				onlineCount = msg.online;
 				globalBusy = msg.busy;
+				otherNode = (msg as any).node || '';
+				otherValue = (msg as any).value ?? 0;
+				otherMax = (msg as any).max ?? 0;
 				break;
 			case 'online':
 				onlineCount = msg.count;
