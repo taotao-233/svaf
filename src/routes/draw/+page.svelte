@@ -45,6 +45,27 @@
 	let inlineWorkflow = $state<object | null>(null);
 	let safetyRating = $state('general');
 
+	// Restore form state from localStorage
+	if (typeof localStorage !== 'undefined') {
+		try {
+			const saved = localStorage.getItem('draw-form');
+			if (saved) {
+				const p = JSON.parse(saved);
+				if (p.workflowPath) workflowPath = p.workflowPath;
+				if (p.workflowName) workflowName = p.workflowName;
+				if (p.styleTags) styleTags = p.styleTags;
+				if (p.styleName) styleName = p.styleName;
+				if (p.directPrompt) directPrompt = p.directPrompt;
+				if (p.negativePrompt) negativePrompt = p.negativePrompt;
+				if (p.nlPrompt) nlPrompt = p.nlPrompt;
+				if (p.rewrite !== undefined) rewrite = p.rewrite;
+				if (p.width) width = p.width;
+				if (p.height) height = p.height;
+				if (p.safetyRating) safetyRating = p.safetyRating;
+			}
+		} catch {}
+	}
+
 	// Progress state
 	let progressMessages = $state<WsRunMessage[]>([]);
 	let showProgress = $state(false);
@@ -73,6 +94,13 @@
 
 	// Tab state
 	let activeTab = $state('generate');
+
+	// Persist form state to localStorage
+	$effect(() => {
+		if (typeof localStorage === 'undefined') return;
+		const state = { workflowPath, workflowName, styleTags, styleName, directPrompt, negativePrompt, nlPrompt, rewrite, width, height, safetyRating };
+		localStorage.setItem('draw-form', JSON.stringify(state));
+	});
 
 	$effect(() => {
 		if (activeTab === 'mine' && isLoggedIn) {
