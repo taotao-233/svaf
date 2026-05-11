@@ -329,7 +329,7 @@
 
 		<!-- Generate Tab -->
 		<TabsContent value="generate" class="space-y-4 mt-4">
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+			<div class="grid grid-cols-2 gap-4">
 				<WorkflowDialog bind:value={workflowPath} onselect={handleWorkflowSelect} onpromptload={handlePromptLoad} />
 				<StyleDialog bind:value={styleTags} onselect={handleStyleSelect} />
 			</div>
