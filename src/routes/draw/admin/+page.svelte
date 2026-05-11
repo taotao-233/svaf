@@ -1133,7 +1133,8 @@
 						{#if styles.length === 0}
 							<div class="text-sm text-muted-foreground py-4 text-center">无画风</div>
 						{:else}
-							<div class="flex flex-wrap gap-2">
+							<!-- svelte-ignore a11y_no_static_element_interactions -->
+							<div class="flex flex-wrap gap-2" onclick={(e) => { if (e.target === e.currentTarget) { styleRenaming = -1; styleEditIndex = -1; } }}>
 								{#each styles as s, i}
 									<div class="inline-flex flex-col items-center gap-1 p-1.5 rounded-md border border-border hover:bg-accent transition-all group {styleRenaming === i ? 'border-primary ring-1 ring-primary/30' : ''}">
 										<!-- Thumbnail: click to upload -->
@@ -1245,7 +1246,8 @@
 
 						<!-- Workflow grid -->
 						{#if workflowFiles.length > 0}
-							<div class="flex flex-wrap gap-2">
+							<!-- svelte-ignore a11y_no_static_element_interactions -->
+							<div class="flex flex-wrap gap-2" onclick={(e) => { if (e.target === e.currentTarget) { wfRenaming = ''; wfMetaEditWf = ''; } }}>
 								{#each workflowFiles as wf}
 									{@const meta = getWfMeta(wf)}
 									<div class="inline-flex flex-col items-center gap-1 p-1.5 rounded-md border border-border hover:bg-accent transition-all group">
