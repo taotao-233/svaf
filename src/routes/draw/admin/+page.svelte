@@ -1090,7 +1090,7 @@
 					</CardHeader>
 					<CardContent class="space-y-3">
 						<div class="flex flex-wrap gap-2">
-							<Button variant="outline" size="sm" onclick={loadStyles} disabled={loading}>
+							<Button variant="outline" size="sm" onclick={() => { styleRenaming = -1; styleEditIndex = -1; loadStyles(); }} disabled={loading}>
 								<Icon icon="mdi:refresh" class="size-4 mr-1" />刷新
 							</Button>
 							<Button size="sm" onclick={addStyle} disabled={loading}>
@@ -1133,8 +1133,7 @@
 						{#if styles.length === 0}
 							<div class="text-sm text-muted-foreground py-4 text-center">无画风</div>
 						{:else}
-							<!-- svelte-ignore a11y_no_static_element_interactions -->
-							<div class="flex flex-wrap gap-2" onclick={(e) => { if (e.target === e.currentTarget) { styleRenaming = -1; styleEditIndex = -1; } }}>
+							<div class="flex flex-wrap gap-2">
 								{#each styles as s, i}
 									<div class="inline-flex flex-col items-center gap-1 p-1.5 rounded-md border border-border hover:bg-accent transition-all group {styleRenaming === i ? 'border-primary ring-1 ring-primary/30' : ''}">
 										<!-- Thumbnail: click to upload -->
@@ -1213,7 +1212,7 @@
 						<CardDescription>点击缩略图上传图片，双击名称重命名</CardDescription>
 					</CardHeader>
 					<CardContent class="space-y-3">
-						<Button variant="outline" size="sm" onclick={loadWorkflowsAll} disabled={loading}>
+						<Button variant="outline" size="sm" onclick={() => { wfRenaming = ''; wfMetaEditWf = ''; loadWorkflowsAll(); }} disabled={loading}>
 							<Icon icon="mdi:refresh" class="size-4 mr-1" />刷新
 						</Button>
 
@@ -1246,8 +1245,7 @@
 
 						<!-- Workflow grid -->
 						{#if workflowFiles.length > 0}
-							<!-- svelte-ignore a11y_no_static_element_interactions -->
-							<div class="flex flex-wrap gap-2" onclick={(e) => { if (e.target === e.currentTarget) { wfRenaming = ''; wfMetaEditWf = ''; } }}>
+							<div class="flex flex-wrap gap-2">
 								{#each workflowFiles as wf}
 									{@const meta = getWfMeta(wf)}
 									<div class="inline-flex flex-col items-center gap-1 p-1.5 rounded-md border border-border hover:bg-accent transition-all group">
