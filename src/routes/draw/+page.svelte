@@ -374,6 +374,7 @@
 					src={getImageUrl(myImages[myLbIndex].path)}
 					alt={myImages[myLbIndex].path}
 					class="w-full max-h-[70vh] object-contain"
+					loading="lazy"
 				/>
 				<div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent p-3">
 					<div class="flex items-center justify-between text-white text-xs">

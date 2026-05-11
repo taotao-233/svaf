@@ -1,30 +1,47 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
 	import { Button } from '$lib/components/ui/button';
-	import { Alert, AlertDescription } from '$lib/components/ui/alert';
 	import * as Dialog from '$lib/components/ui/dialog';
-	import { fetchFeatured, getImageUrl, getImageProxyUrl } from '$lib/draw/api/client';
+	import { fetchOutputList, getImageUrl, getImageProxyUrl } from '$lib/draw/api/client';
 	import type { DrawOutputItem } from '$lib/draw/types';
 
-	const tip = '精选图片由管理员挑选，展示社区优质作品。';
-
 	let items = $state<DrawOutputItem[]>([]);
-	let loading = $state(true);
+	let total = $state(0);
+	let loading = $state(false);
+	let offset = $state(0);
+	const limit = 30;
+	let hasMore = $derived(offset < total);
 
 	let lightboxOpen = $state(false);
 	let lightboxIndex = $state(0);
 
 	$effect(() => {
-		loadFeatured();
+		loadGallery();
 	});
 
-	async function loadFeatured() {
+	async function loadGallery() {
 		loading = true;
 		try {
-			const res = await fetchFeatured();
+			const res = await fetchOutputList(limit, 0);
 			items = res.items;
+			total = res.total;
+			offset = res.items.length;
 		} catch {
 			items = [];
+		} finally {
+			loading = false;
+		}
+	}
+
+	async function loadMore() {
+		if (loading || !hasMore) return;
+		loading = true;
+		try {
+			const res = await fetchOutputList(limit, offset);
+			items = [...items, ...res.items];
+			offset += res.items.length;
+		} catch {
+			// ignore
 		} finally {
 			loading = false;
 		}
@@ -49,30 +66,22 @@
 <div class="space-y-3">
 	<div class="flex items-center justify-between">
 		<h3 class="text-sm font-medium flex items-center gap-1.5">
-			<Icon icon="mdi:star-outline" class="size-4" />
-			精选
-			<span class="text-xs text-muted-foreground">({items.length})</span>
+			<Icon icon="mdi:image-multiple-outline" class="size-4" />
+			画廊
+			<span class="text-xs text-muted-foreground">({items.length}/{total})</span>
 		</h3>
-		<Button variant="ghost" size="sm" onclick={loadFeatured} disabled={loading}>
+		<Button variant="ghost" size="sm" onclick={loadGallery} disabled={loading}>
 			<Icon icon="mdi:refresh" class="size-4" />
 		</Button>
 	</div>
 
-	{#if tip}
-		<Alert>
-			<AlertDescription class="text-xs">{tip}</AlertDescription>
-		</Alert>
-	{/if}
-
-	{#if loading}
-		<div class="text-xs text-muted-foreground py-8 text-center">加载中...</div>
-	{:else if items.length === 0}
-		<div class="text-xs text-muted-foreground py-8 text-center">暂无精选图片</div>
+	{#if items.length === 0 && !loading}
+		<div class="text-xs text-muted-foreground py-8 text-center">暂无图片</div>
 	{:else}
-		<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+		<div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-1.5">
 			{#each items as item, i}
 				<button
-					class="aspect-square rounded-lg overflow-hidden border hover:ring-2 hover:ring-primary/50 transition-all"
+					class="aspect-square rounded-md overflow-hidden border hover:ring-2 hover:ring-primary/50 transition-all"
 					onclick={() => openLightbox(i)}
 				>
 					<img
@@ -84,6 +93,17 @@
 				</button>
 			{/each}
 		</div>
+
+		{#if hasMore}
+			<div class="text-center">
+				<Button variant="outline" size="sm" onclick={loadMore} disabled={loading}>
+					{#if loading}
+						<Icon icon="mdi:loading" class="size-4 animate-spin mr-1" />
+					{/if}
+					加载更多
+				</Button>
+			</div>
+		{/if}
 	{/if}
 </div>
 

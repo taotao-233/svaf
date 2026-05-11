@@ -955,6 +955,7 @@
 														src={getImageProxyUrl(r.image_path)}
 														alt=""
 														class="w-full h-full object-cover"
+														loading="lazy"
 													/>
 												</button>
 											{/if}
@@ -1466,6 +1467,7 @@
 				src={getImageUrl(lbPath)}
 				alt={lbPath}
 				class="w-full max-h-[70vh] object-contain"
+				loading="lazy"
 			/>
 			<div class="px-4 py-2 border-t flex items-center justify-between">
 				<span class="text-xs font-mono truncate">{lbPath}</span>

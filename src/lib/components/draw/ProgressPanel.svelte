@@ -94,7 +94,7 @@
 		<!-- Preview image -->
 		{#if previewSrc}
 			<div class="rounded-lg overflow-hidden border">
-				<img src={previewSrc} alt="预览" class="w-full max-h-64 object-contain" />
+				<img src={previewSrc} alt="预览" class="w-full max-h-64 object-contain" loading="lazy" />
 			</div>
 		{/if}
 
