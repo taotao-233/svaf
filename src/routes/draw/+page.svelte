@@ -78,6 +78,7 @@
 	let progressMessages = $state<WsRunMessage[]>([]);
 	let showProgress = $state(false);
 	let resultImages = $state<{ url: string; filename: string }[]>([]);
+	let genCost = $state(0);
 
 	// My images state
 	let myImages = $state<{ path: string; mtime: number }[]>([]);
