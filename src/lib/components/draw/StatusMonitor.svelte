@@ -7,11 +7,20 @@
 	import { fetchGpuStatus, fetchAnnouncement } from '$lib/draw/api/client';
 	import type { DrawGpuInfo } from '$lib/draw/types';
 
+	// 合肥市居民用电均价 0.5653 元/kWh
+	const ELECTRICITY_RATE = 0.5653;
+
 	let gpu = $state<DrawGpuInfo[]>([]);
 	let gpuAvailable = $state(false);
 	let gpuError = $state('');
 	let announcement = $state<{ enabled: boolean; title: string; content: string } | null>(null);
 	let loading = $state(true);
+
+	// 电费累加
+	let totalKWh = $state(0);
+	let totalCost = $derived(totalKWh * ELECTRICITY_RATE);
+	let lastPowerDraw = $state(0);
+	let lastTick = $state(Date.now());
 
 	$effect(() => {
 		loadStatus();
@@ -25,12 +34,28 @@
 			gpuAvailable = gpuRes.available;
 			gpuError = gpuRes.error || '';
 			announcement = annRes.announcement;
+
+			// 累加电费：总功耗(W) * 时间差 / 1000 / 3600 => kWh
+			const now = Date.now();
+			const totalW = gpu.reduce((sum, g) => sum + (g['power.draw'] || 0), 0);
+			if (lastTick > 0 && totalW > 0) {
+				const hours = (now - lastTick) / 3600000;
+				totalKWh += (totalW * hours) / 1000;
+			}
+			lastPowerDraw = totalW;
+			lastTick = now;
 		} catch {
 			// ignore
 		} finally {
 			loading = false;
 		}
 	}
+
+	// 每 5 秒自动刷新以累加电费
+	$effect(() => {
+		const interval = setInterval(loadStatus, 5000);
+		return () => clearInterval(interval);
+	});
 </script>
 
 <div class="space-y-4">
@@ -43,6 +68,35 @@
 			<Icon icon="mdi:refresh" class="size-4" />
 		</Button>
 	</div>
+
+	<!-- 预估电费 -->
+	<Card>
+		<CardHeader class="pb-2">
+			<CardTitle class="text-sm flex items-center gap-1.5">
+				<Icon icon="mdi:currency-cny" class="size-4" />
+				预估电费
+			</CardTitle>
+		</CardHeader>
+		<CardContent>
+			<div class="space-y-2 text-xs">
+				<div class="flex justify-between">
+					<span class="text-muted-foreground">当前总功耗</span>
+					<span>{lastPowerDraw} W</span>
+				</div>
+				<div class="flex justify-between">
+					<span class="text-muted-foreground">累计电量</span>
+					<span>{totalKWh.toFixed(6)} kWh</span>
+				</div>
+				<div class="flex justify-between font-medium text-sm">
+					<span>预估费用</span>
+					<span class="text-primary">¥{totalCost.toFixed(6)}</span>
+				</div>
+				<div class="text-[10px] text-muted-foreground">
+					按合肥市居民用电均价 ¥{ELECTRICITY_RATE}/kWh 估算
+				</div>
+			</div>
+		</CardContent>
+	</Card>
 
 	<!-- Announcement -->
 	{#if announcement?.enabled}
