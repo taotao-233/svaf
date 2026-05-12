@@ -80,7 +80,6 @@
 		class="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
 		data-backdrop="1"
 		onclick={handleBackdrop}
-		oncontextmenu={(e) => e.preventDefault()}
 		role="dialog"
 		aria-modal="true"
 	>
@@ -97,8 +96,8 @@
 			<img
 				src={images[index].src}
 				alt=""
-				class="max-w-full max-h-full object-contain select-none"
-				draggable="false"
+				class="max-w-full max-h-full object-contain"
+				oncontextmenu={(e) => e.stopPropagation()}
 			/>
 		</div>
 
