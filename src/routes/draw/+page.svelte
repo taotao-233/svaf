@@ -373,7 +373,7 @@
 
 	<!-- Maintenance fullscreen overlay (non-closable) -->
 	{#if showMaintenanceDialog}
-		<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+		<div class="fixed top-14 inset-x-0 bottom-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
 			<div class="bg-popover text-popover-foreground rounded-4xl p-6 max-w-md w-full mx-4 ring-1 ring-foreground/5">
 				<div class="flex items-center gap-2 mb-3">
 					<Icon icon="mdi:tools" class="size-5 text-destructive" />
