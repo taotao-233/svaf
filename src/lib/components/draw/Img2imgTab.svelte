@@ -7,6 +7,8 @@
 	import { drawEnv, resolveApiRedirect, apiError } from '$lib/draw/stores/env';
 	import { get } from 'svelte/store';
 
+	const STORAGE_KEY = 'draw-img2img';
+
 	let currentBaseUrl = $state('');
 	let authToken = $state<string | null>(null);
 	let isLoggedIn = $derived(!!authToken);
@@ -18,6 +20,53 @@
 	let generating = $state(false);
 	let error = $state('');
 	let resultImages = $state<{ url: string; filename: string; subfolder: string; image_type: string }[]>([]);
+
+	function saveState() {
+		if (typeof localStorage === 'undefined') return;
+		const data: any = { prompt };
+		const savedDataUrls = imagePreviews.filter(u => u.startsWith('data:'));
+		if (savedDataUrls.length) data.images = savedDataUrls;
+		localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+	}
+
+	function restoreState() {
+		if (typeof localStorage === 'undefined') return;
+		try {
+			const saved = localStorage.getItem(STORAGE_KEY);
+			if (!saved) return;
+			const parsed = JSON.parse(saved);
+			if (parsed.prompt) prompt = parsed.prompt;
+			if (parsed.images?.length) {
+				for (const dataUrl of parsed.images) {
+					fetch(dataUrl)
+						.then(r => r.blob())
+						.then(blob => {
+							const ext = dataUrl.split(';')[0].split('/')[1] || 'png';
+							const file = new File([blob], `img2img.${ext}`, { type: blob.type });
+							images.push(file);
+							imagePreviews.push(dataUrl);
+						})
+						.catch(() => {});
+				}
+			}
+		} catch {}
+	}
+
+	$effect(() => {
+		restoreState();
+	});
+
+	// Auto-save prompt on change
+	$effect(() => {
+		prompt;
+		if (typeof localStorage === 'undefined') return;
+		try {
+			const saved = localStorage.getItem(STORAGE_KEY);
+			const parsed = saved ? JSON.parse(saved) : {};
+			parsed.prompt = prompt;
+			localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+		} catch {}
+	});
 
 	$effect(() => {
 		const unsub = apiError.subscribe((v) => {
@@ -39,9 +88,19 @@
 		const remaining = 2 - images.length;
 		if (remaining <= 0) return;
 		const added = newFiles.slice(0, remaining);
+		let pending = remaining === 2 ? 0 : images.length;
 		for (const f of added) {
 			images.push(f);
-			imagePreviews.push(URL.createObjectURL(f));
+			const url = URL.createObjectURL(f);
+			imagePreviews.push(url);
+			const reader = new FileReader();
+			const idx = imagePreviews.length - 1;
+			reader.onload = () => {
+				imagePreviews[idx] = reader.result as string;
+				URL.revokeObjectURL(url);
+				if (++pending >= images.length) saveState();
+			};
+			reader.readAsDataURL(f);
 		}
 		input.value = '';
 	}
@@ -50,6 +109,7 @@
 		URL.revokeObjectURL(imagePreviews[idx]);
 		images.splice(idx, 1);
 		imagePreviews.splice(idx, 1);
+		saveState();
 	}
 
 	async function startGeneration() {
@@ -72,7 +132,6 @@
 
 		try {
 			const form = new FormData();
-			form.append('token', token);
 			form.append('prompt', prompt.trim());
 			form.append('image1', images[0]);
 			if (images.length > 1) form.append('image2', images[1]);
@@ -80,6 +139,7 @@
 			const baseUrl = get(drawEnv.baseUrl);
 			const resp = await fetch(`${baseUrl}/api/img2img/run`, {
 				method: 'POST',
+				headers: { 'Authorization': `Bearer ${token}` },
 				body: form,
 			});
 
