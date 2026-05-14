@@ -22,7 +22,7 @@ jobs:
   triage:
     if: ${{ github.event_name == 'pull_request_target' }}
     runs-on: ubuntu-latest
-    container: mcr.microsoft.com/playwright:jammy
+    container: debian:bookworm-slim
     timeout-minutes: 15
     steps:
       - name: Setup Node.js
@@ -30,8 +30,16 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install Playwright npm package
-        run: npm install -D @playwright/test
+      - name: Install system dependencies
+        run: |
+          apt-get update
+          apt-get install -y ca-certificates curl
+
+      - name: Install Playwright
+        run: |
+          npm install -D @playwright/test
+          npx playwright install-deps chromium
+          npx playwright install chromium
 
       - name: Label PR by changed paths
         uses: actions/github-script@v7
@@ -748,7 +756,7 @@ jobs:
   verify_and_merge:
     if: ${{ github.event_name == 'issue_comment' && github.event.issue.pull_request && github.event.comment.body == '准备完毕' }}
     runs-on: ubuntu-latest
-    container: mcr.microsoft.com/playwright:jammy
+    container: debian:bookworm-slim
     timeout-minutes: 15
     steps:
       - name: Setup Node.js
@@ -756,8 +764,16 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install Playwright npm package
-        run: npm install -D @playwright/test
+      - name: Install system dependencies
+        run: |
+          apt-get update
+          apt-get install -y ca-certificates curl
+
+      - name: Install Playwright
+        run: |
+          npm install -D @playwright/test
+          npx playwright install-deps chromium
+          npx playwright install chromium
 
       - name: Auto-merge
         uses: actions/github-script@v7
