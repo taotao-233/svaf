@@ -7,7 +7,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { forumAuth } from '$lib/forum/stores/auth';
-	import { drawEnv, apiError, apiStatus } from '$lib/draw/stores/env';
+	import { drawEnv, apiError, apiStatus, resolveApiRedirect } from '$lib/draw/stores/env';
 	import { connectRunWs, connectStatusWs } from '$lib/draw/api/ws';
 	import { fetchMyImages, getImageUrl, getImageProxyUrl, forkOutputImage, recommendImage, deleteMyImage, fetchMyRecommendations } from '$lib/draw/api/client';
 	import { consumeFork } from '$lib/draw/stores/fork';
@@ -109,11 +109,16 @@
 			apiErrorMessage = v || '';
 		});
 		return unsub;
+	});
 
 	$effect(() => {
 		const unsub = apiStatus.subscribe((v) => (apiStatusValue = v));
 		return unsub;
 	});
+
+	// 页面加载时探测 API 状态
+	$effect(() => {
+		resolveApiRedirect();
 	});
 
 	// Tab state
