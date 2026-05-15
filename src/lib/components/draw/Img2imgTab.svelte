@@ -357,7 +357,7 @@
 			<Icon icon="mdi:loading" class="size-4 animate-spin" />
 			上传中 {uploadProgress}%
 		{:else}
-			<Icon icon="mdi:play" class="size-4" />
+			<Icon icon="mdi:playlist-plus" class="size-5 mr-1.5" />
 			加入队列
 		{/if}
 	</Button>

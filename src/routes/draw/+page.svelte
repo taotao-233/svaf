@@ -12,7 +12,7 @@
 	import { fetchMyImages, getImageUrl, getImageProxyUrl, forkOutputImage, recommendImage, deleteMyImage, fetchMyRecommendations, addToQueue, fetchMyQueue } from '$lib/draw/api/client';
 	import { consumeFork } from '$lib/draw/stores/fork';
 	import { onMount, onDestroy } from 'svelte';
-	import type { WsStatusEvent, WsRunPayload, DrawWorkflow, DrawRecommendation } from '$lib/draw/types';
+	import type { WsStatusEvent, DrawWorkflow, DrawRecommendation } from '$lib/draw/types';
 
 	import PageViews from '$lib/components/PageViews.svelte';
 
@@ -32,10 +32,6 @@
 	let queueSuccess = $state("");
 	let globalBusy = $state(false);
 	
-	let otherNode = $state('');
-	let otherValue = $state(0);
-	let otherMax = $state(0);
-	let otherStage = $state('');
 	let authToken = $state<string | null>(null);
 	let isLoggedIn = $derived(!!authToken);
 
@@ -181,8 +177,7 @@
 		return () => {
 			u1();
 			statusConn?.close();
-			runWs?.close();
-		};
+			};
 	});
 
 	// Reconnect status WS when base URL changes
@@ -198,10 +193,6 @@
 			case 'status':
 				onlineCount = msg.online;
 				globalBusy = msg.busy;
-				otherNode = (msg as any).node || '';
-				otherValue = (msg as any).value ?? 0;
-				otherMax = (msg as any).max ?? 0;
-				otherStage = (msg as any).stage || '';
 				break;
 			case 'online':
 				onlineCount = msg.count;
@@ -575,11 +566,10 @@
 						</Alert>
 					{/if}
 
-					</Dialog.Root>
 				</TabsContent>
 
 				<TabsContent value="img2img" class="mt-4">
-					<Img2imgTab {globalBusy} bind:otherNode bind:otherValue bind:otherMax bind:otherStage />
+					<Img2imgTab />
 				</TabsContent>
 
 			</Tabs>

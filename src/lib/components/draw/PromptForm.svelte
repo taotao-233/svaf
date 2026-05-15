@@ -215,7 +215,7 @@
 			<Icon icon="mdi:loading" class="size-4 animate-spin" />
 			加入队列中...
 		{:else}
-			<Icon icon="mdi:queue-timeline" class="size-4" />
+			<Icon icon="mdi:playlist-plus" class="size-5 mr-1.5" />
 			加入队列
 		{/if}
 	</Button>
