@@ -22,6 +22,7 @@
 	import ProgressPanel from '$lib/components/draw/ProgressPanel.svelte';
 	import FeaturedTab from '$lib/components/draw/FeaturedTab.svelte';
 	import Img2imgTab from '$lib/components/draw/Img2imgTab.svelte';
+import ReversePushTab from '$lib/components/draw/ReversePushTab.svelte';
 		import ImageLightbox from '$lib/components/draw/ImageLightbox.svelte';
 
 	// State
@@ -453,6 +454,10 @@
 						<Icon icon="mdi:image-edit-outline" class="size-4 mr-1" />
 						图生图
 					</TabsTrigger>
+					<TabsTrigger value="reverse_push" class="flex-1">
+						<Icon icon="mdi:swap-horizontal-bold" class="size-4 mr-1" />
+						反推重绘
+					</TabsTrigger>
 				</TabsList>
 
 				<TabsContent value="txt2img" class="space-y-4 mt-4">
@@ -492,6 +497,10 @@
 
 				<TabsContent value="img2img" class="mt-4">
 					<Img2imgTab {globalBusy} bind:otherNode bind:otherValue bind:otherMax bind:otherStage />
+				</TabsContent>
+
+				<TabsContent value="reverse_push" class="mt-4">
+					<ReversePushTab {globalBusy} bind:otherNode bind:otherValue bind:otherMax bind:otherStage />
 				</TabsContent>
 			</Tabs>
 		</TabsContent>

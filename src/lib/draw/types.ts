@@ -1,4 +1,4 @@
-export type DrawApiEnv = 'prod' | 'dev';
+﻿export type DrawApiEnv = 'prod' | 'dev';
 
 export interface DrawApiErrorPayload {
 	code?: string;
@@ -216,6 +216,10 @@ export interface WsRunPayload {
 	style_tags?: string;
 	negative_prompt?: string;
 	seed?: number;
+	image1_name?: string;
+	image2_name?: string;
+	denoise?: number;
+	reverse_push?: boolean;
 }
 
 // --- Admin types ---
