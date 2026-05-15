@@ -378,7 +378,7 @@
 		try {
 			const res = await fetchMyQueue();
 			const now = res.items;
-			myQueueItems = now.filter(it => it.status === 'pending' || it.status === 'running' || it.status === 'failed');
+			myQueueItems = now.filter(it => it.status === 'pending' || it.status === 'running' || it.status === 'failed' || it.status === 'done');
 		} catch {
 			myQueueItems = [];
 		} finally {
@@ -696,17 +696,22 @@
 								<div class="space-y-1">
 									{#each myQueueItems as item}
 										<div class="flex items-center gap-2 text-xs border rounded-lg px-3 py-2 {item.status === 'failed' ? 'border-red-300 bg-red-50 dark:bg-red-950/30' : ''}">
-											{#if item.status === 'running'}
-												<Icon icon="mdi:loading" class="size-4 animate-spin text-primary" />
-												<span class="flex-1">正在生图中</span>
-											{:else if item.status === 'failed'}
-												<Icon icon="mdi:alert-circle" class="size-4 text-red-500" />
-												<span class="flex-1 truncate">{item.error || '生图失败'}</span>
-											{:else}
-												<Icon icon="mdi:clock-outline" class="size-4 text-muted-foreground" />
-												<span class="flex-1">等待生图中，前面还有 {item.position ? item.position - 1 : 0} 位</span>
-											{/if}
-											<span class="text-muted-foreground">{formatTimeAgo(item.created_at)}</span>
+										{#if item.status === 'running'}
+											<Icon icon="mdi:loading" class="size-4 animate-spin text-primary" />
+											<span class="flex-1">正在生图中</span>
+										{:else if item.status === 'done'}
+											<Icon icon="mdi:check-circle" class="size-4 text-green-500" />
+											<span class="flex-1">生图完成，请前往"我的图片"查看</span>
+										{:else if item.status === 'failed'}
+											<Icon icon="mdi:alert-circle" class="size-4 text-red-500" />
+											<span class="flex-1 truncate">{item.error || '生图失败'}</span>
+										{:else if item.status === 'cancelled'}
+											<Icon icon="mdi:cancel" class="size-4 text-muted-foreground" />
+											<span class="flex-1">已取消</span>
+										{:else}
+											<Icon icon="mdi:clock-outline" class="size-4 text-muted-foreground" />
+											<span class="flex-1">等待生图中，前面还有 {item.position ? item.position - 1 : 0} 位</span>
+										{/if}
 										</div>
 									{/each}
 								</div>
