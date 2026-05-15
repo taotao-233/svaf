@@ -234,10 +234,6 @@ function handlePromptInput(e: Event) {
 				image2_name: uploadData.image2_name || '',
 			});
 			uploading = false;
-			prompt = '';
-			images = [];
-			saveState();
-			alert('已加入队列，生成完成后可前往"我的"页面查看');
 		} catch (e) {
 			uploading = false;
 			error = e instanceof Error ? e.message : '生成失败';
