@@ -319,7 +319,8 @@
 	}
 
 	async function loadMyQueue() {
-		myQueueLoading = true;
+		if (!_queueLoadedOnce) myQueueLoading = true;
+		_queueLoadedOnce = true;
 		try {
 			const res = await fetchMyQueue();
 			const now = res.items;
