@@ -65,6 +65,7 @@ export interface ForumAdminSettings {
 	notifyOnUsernameChange: boolean;
 	notifyOnAvatarChange: boolean;
 	notifyOnManualVerify: boolean;
+	notifyOnNewPost: boolean;
 	sessionTtlDays: number;
 }
 

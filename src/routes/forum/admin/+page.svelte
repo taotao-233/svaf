@@ -49,6 +49,7 @@
 		notifyOnUsernameChange: false,
 		notifyOnAvatarChange: false,
 		notifyOnManualVerify: false,
+		notifyOnNewPost: true,
 		sessionTtlDays: 7
 	};
 
@@ -63,7 +64,8 @@
 		{ value: 'admin_manual_verified', label: '后台手动验证通知' },
 		{ value: 'admin_account_deleted', label: '后台删号通知' },
 		{ value: 'post_new_comment', label: '帖子新评论提醒' },
-		{ value: 'comment_new_reply', label: '评论新回复提醒' }
+		{ value: 'comment_new_reply', label: '评论新回复提醒' },
+		{ value: 'notify_on_new_post', label: '新帖通知管理员' }
 	] as const;
 
 	let loading = $state(true);
@@ -561,7 +563,8 @@
 								{ key: 'notifyOnPostDelete', label: '删除帖子时通知用户' },
 								{ key: 'notifyOnUsernameChange', label: '修改用户名时通知用户' },
 								{ key: 'notifyOnAvatarChange', label: '修改头像时通知用户' },
-								{ key: 'notifyOnManualVerify', label: '手动验证时通知用户' }
+								{ key: 'notifyOnManualVerify', label: '手动验证时通知用户' },
+								{ key: 'notifyOnNewPost', label: '新帖通知管理员' }
 							] as item (item.key)}
 								<div class="flex items-center justify-between gap-3 rounded-md border p-3">
 									<Label for={`set-${item.key}`} class="m-0 flex-1 cursor-pointer">

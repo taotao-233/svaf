@@ -19,6 +19,7 @@ interface RawAdminSettings {
 	notify_on_username_change?: boolean;
 	notify_on_avatar_change?: boolean;
 	notify_on_manual_verify?: boolean;
+	notify_on_new_post?: boolean;
 	session_ttl_days?: number;
 }
 
@@ -50,6 +51,7 @@ function normalizeAdminSettings(s: RawAdminSettings): ForumAdminSettings {
 		notifyOnUsernameChange: Boolean(s.notify_on_username_change),
 		notifyOnAvatarChange: Boolean(s.notify_on_avatar_change),
 		notifyOnManualVerify: Boolean(s.notify_on_manual_verify),
+		notifyOnNewPost: s.notify_on_new_post === undefined ? true : Boolean(s.notify_on_new_post),
 		sessionTtlDays: s.session_ttl_days || 7
 	};
 }
@@ -102,6 +104,7 @@ export function saveAdminSettings(
 			notify_on_username_change: settings.notifyOnUsernameChange,
 			notify_on_avatar_change: settings.notifyOnAvatarChange,
 			notify_on_manual_verify: settings.notifyOnManualVerify,
+			notify_on_new_post: settings.notifyOnNewPost,
 			session_ttl_days: settings.sessionTtlDays
 		}
 	});
