@@ -21,8 +21,8 @@ import type { DrawOutputItem } from '$lib/draw/types';
 	let columnCount = $state(4);
 	let imgColumns = $state<string[][]>([[], [], [], []]);
 	let columnHeights: number[] = [0, 0, 0, 0];
-	let sentinelEl: HTMLDivElement | undefined;
-	let io: IntersectionObserver | null = null;
+	let displayLimit = $state(5);
+	let hasMore = $state(false);
 
 	// Lightbox state
 	let lbOpen = $state(false);
@@ -38,21 +38,32 @@ import type { DrawOutputItem } from '$lib/draw/types';
 		loadFeatured();
 	});
 
-	async function loadFeatured() {
+async function loadFeatured() {
 		loading = true;
 		try {
 			const res = await fetchFeatured();
 			items = res.items;
-			columnCount = getColumnCount();
-			imgColumns = Array.from({ length: columnCount }, () => []);
-			columnHeights = new Array(columnCount).fill(0);
-			for (const item of res.items) pushToShortest(item.path);
-			imgColumns = [...imgColumns];
+			rebuildFeatured();
 		} catch {
 			items = [];
 		} finally {
 			loading = false;
 		}
+	}
+
+	function rebuildFeatured() {
+		const display = items.slice(0, displayLimit);
+		columnCount = getColumnCount();
+		imgColumns = Array.from({ length: columnCount }, () => []);
+		columnHeights = new Array(columnCount).fill(0);
+		for (const item of display) pushToShortest(item.path);
+		imgColumns = [...imgColumns];
+		hasMore = displayLimit < items.length;
+	}
+
+	function showMoreFeatured() {
+		displayLimit = Math.min(displayLimit + 10, items.length);
+		rebuildFeatured();
 	}
 
 	function getColumnCount(): number {
@@ -99,7 +110,7 @@ import type { DrawOutputItem } from '$lib/draw/types';
 		const nu = getColumnCount();
 		if (nu === old) return;
 		columnCount = nu;
-		rebuildColumns();
+		rebuildFeatured();
 	}
 
 	function handleImgLoad(e: Event) {
@@ -178,6 +189,13 @@ import type { DrawOutputItem } from '$lib/draw/types';
 				</div>
 			{/each}
 		</div>
+		{#if hasMore}
+			<div class="flex justify-center pt-2">
+				<Button variant="outline" size="sm" onclick={showMoreFeatured}>
+					加载更多（{items.length - displayLimit} 张）
+				</Button>
+			</div>
+		{/if}
 	{/if}
 </div>
 

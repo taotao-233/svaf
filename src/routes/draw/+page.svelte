@@ -96,6 +96,7 @@
 	let io: IntersectionObserver | null = null;
 	let hasMore = $state(true);
 	let loadingMore = $state(false);
+	let myImagesDisplayLimit = $state(5);
 
 	// My images lightbox
 	let myLbOpen = $state(false);
@@ -327,17 +328,27 @@
 			myImages = res.items;
 			myImagesTotal = res.total;
 			myImagesLoaded = true;
-			columnCount = getColumnCount();
-			imgColumns = Array.from({ length: columnCount }, () => []);
-			columnHeights = new Array(columnCount).fill(0);
-			for (const item of res.items) pushToShortest(item.path);
-			imgColumns = [...imgColumns];
-			hasMore = false;
+			rebuildMyColumns();
 		} catch {
 			myImages = [];
 		} finally {
 			myImagesLoading = false;
 		}
+	}
+
+	function rebuildMyColumns() {
+		columnCount = getColumnCount();
+		imgColumns = Array.from({ length: columnCount }, () => []);
+		columnHeights = new Array(columnCount).fill(0);
+		const display = myImages.slice(0, myImagesDisplayLimit);
+		for (const item of display) pushToShortest(item.path);
+		imgColumns = [...imgColumns];
+		hasMore = myImagesDisplayLimit < myImages.length;
+	}
+
+	function showMoreMyImages() {
+		myImagesDisplayLimit = Math.min(myImagesDisplayLimit + 10, myImages.length);
+		rebuildMyColumns();
 	}
 
 	async function loadMyQueue() {
@@ -795,7 +806,13 @@
 									</div>
 								{/each}
 							</div>
-							<div bind:this={sentinelEl} class="h-4"></div>
+							{#if hasMore}
+								<div class="flex justify-center pt-2">
+									<Button variant="outline" size="sm" onclick={showMoreMyImages}>
+										加载更多（{myImages.length - myImagesDisplayLimit} 张）
+									</Button>
+								</div>
+							{/if}
 						{/if}
 					</div>
 
