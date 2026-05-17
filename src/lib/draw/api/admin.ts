@@ -135,7 +135,7 @@ export async function banUser(userId: number, days: number, reason: string) {
 export async function unbanUser(userId: number) {
 	return drawRequest<{ ok: boolean; banned: BanEntry[] }>('/api/draw/admin/draw-unban', {
 		method: 'POST',
-		json: { user_id: userId, days, reason }
+		json: { user_id: userId }
 	});
 }
 
