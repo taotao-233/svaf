@@ -1308,8 +1308,8 @@ function formatTime(ts: number) {
 							<div class="space-y-1.5">
 								{#each bannedUsers as ban}
 									<div class="flex items-center justify-between border rounded-md px-3 py-2">
-										<span class="text-sm font-mono">{ban.user_id}</span>
-										<Button size="sm" variant="ghost" onclick={() => handleUnban(uid)} disabled={loading}>
+										<span class="text-sm font-mono">{ban.user_id} - {ban.reason || '违规行为'}（{ban.remaining_days || '?'}天）</span>
+										<Button size="sm" variant="ghost" onclick={() => handleUnban(ban.user_id)} disabled={loading}>
 											<Icon icon="mdi:account-check" class="size-4 mr-1" />解封
 										</Button>
 									</div>
