@@ -174,9 +174,8 @@ let loadingMore = $state(false);
 		}
 	}
 
-	$effect(() => {
-		let recMasonry: any = null;
-	$effect(() => {
+let recMasonry: any = null;
+$effect(() => {
 		if (recMasonryEl && recommendations.length > 0) {
 			const el = recMasonryEl;
 			setTimeout(() => {
@@ -199,7 +198,8 @@ let loadingMore = $state(false);
 		}
 	});
 
-	authToken = forumAuth.getToken();
+	$effect(() => {
+		authToken = forumAuth.getToken();
 		const u = drawEnv.baseUrl.subscribe((v) => (currentBaseUrl = v));
 		return u;
 	});
@@ -1098,7 +1098,7 @@ function formatTime(ts: number) {
 													class="block w-full h-auto bg-muted"
 												/>
 											</button>
-											<div class="absolute top-1 left-1">
+											<div class="absolute top-1 left-1 flex gap-1 items-start">
 												<input
 													type="checkbox"
 													checked={selectedPaths.has(img.path)}
@@ -1106,6 +1106,9 @@ function formatTime(ts: number) {
 													onclick={(e) => e.stopPropagation()}
 													class="size-4 accent-primary opacity-60 group-hover:opacity-100 transition-opacity"
 												/>
+t											{#if img.deleted}
+													<span class="bg-red-600 text-white text-[9px] px-1 rounded font-bold">已删</span>
+												{/if}
 											</div>
 											<div class="absolute top-1 right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
 												<button

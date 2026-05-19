@@ -227,6 +227,7 @@ export interface AdminRecentImage {
 	path: string;
 	user_id: string;
 	mtime: number;
+	deleted?: boolean;
 	prompt?: string;
 	negative_prompt?: string;
 	image1?: string;
