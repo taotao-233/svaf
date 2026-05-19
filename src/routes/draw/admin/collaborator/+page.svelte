@@ -37,6 +37,9 @@
 	// Nominations tab
 	let myNominations = $state<any[]>([]);
 	let nominationsLoaded = $state(false);
+	let nomItems = $derived(myNominations.flatMap((n: any) => n.image_paths.map((p: string) => ({ path: p, status: n.status, submitted_at: n.submitted_at, id: n.id, note: n.note, admin_reason: n.admin_reason }))));
+	let nomColumns = $state<string[][]>([]);
+	let nomColumnHeights: number[] = [];
 
 	// Common
 	let loading = $state(false);
@@ -78,6 +81,20 @@
 		columnHeights = new Array(columnCount).fill(0);
 		for (const item of allImages) pushToShortest(item.path);
 		imgColumns = [...imgColumns];
+	}
+
+	function rebuildNomColumns() {
+		const cc = getColumnCount();
+		nomColumns = Array.from({ length: cc }, () => []);
+		nomColumnHeights = new Array(cc).fill(0);
+		for (const item of nomItems) {
+			let minIdx = 0;
+			for (let i = 1; i < nomColumnHeights.length; i++) {
+				if (nomColumnHeights[i] < nomColumnHeights[minIdx]) minIdx = i;
+			}
+			nomColumns[minIdx] = [...nomColumns[minIdx], item.path];
+			nomColumnHeights[minIdx] += 1;
+		}
 	}
 
 	function handleResize() {
@@ -156,6 +173,7 @@
 			const res = await collab.getMyNominations();
 			myNominations = res.items;
 			nominationsLoaded = true;
+			rebuildNomColumns();
 		} catch (e) {
 			showMsg('error', e instanceof Error ? e.message : '加载失败');
 		}
@@ -320,43 +338,32 @@
 
 			<!-- My Nominations Tab -->
 			<TabsContent value="nominations" class="mt-4">
-				<Card>
-					<CardHeader>
-						<CardTitle class="text-base flex items-center gap-2">
-							<Icon icon="mdi:send-outline" class="size-4" />
-							我的提名
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						{#if !nominationsLoaded}
-							<div class="text-sm text-muted-foreground py-4 text-center">加载中...</div>
-						{:else if myNominations.length === 0}
-							<div class="text-sm text-muted-foreground py-4 text-center">暂无提名记录</div>
-						{:else}
-							<div class="space-y-2">
-								{#each myNominations as nom}
-									<div class="border rounded-lg p-3 space-y-1">
-										<div class="flex items-center gap-2 text-xs">
-											<Badge variant={nom.status === 'approved' ? 'default' : nom.status === 'rejected' ? 'destructive' : 'secondary'}>
-												{nom.status === 'approved' ? '已批准' : nom.status === 'rejected' ? '已拒绝' : '待审核'}
-											</Badge>
-											<span class="text-muted-foreground">{new Date(nom.submitted_at * 1000).toLocaleString()}</span>
-											<span class="text-muted-foreground">{nom.image_paths.length} 张</span>
+				{#if !nominationsLoaded}
+					<div class="text-sm text-muted-foreground py-8 text-center">加载中...</div>
+				{:else if nomItems.length === 0}
+					<div class="text-sm text-muted-foreground py-8 text-center">暂无提名记录</div>
+				{:else}
+					<div class="flex gap-2 items-start">
+						{#each nomColumns as col, ci (ci)}
+							<div class="flex flex-1 flex-col gap-2 min-w-0">
+								{#each col as path (ci + '-' + path)}
+									{@const item = nomItems.find(i => i.path === path)}
+									{#if item}
+										<div class="relative group rounded-md overflow-hidden border">
+											<img src={getImageProxyUrl(item.path)} alt={item.path} loading="lazy" decoding="async" style="aspect-ratio: 1;" onload={handleImgLoad} class="block w-full h-auto bg-muted" />
+											<div class="absolute bottom-0 inset-x-0 bg-black/60 text-white text-[10px] px-1 py-0.5 truncate pointer-events-none flex items-center gap-1">
+												<span class="flex-1">{item.path}</span>
+												<Badge variant={item.status === 'approved' ? 'default' : item.status === 'rejected' ? 'destructive' : 'secondary'} class="text-[9px] px-1 py-0 shrink-0">
+													{item.status === 'approved' ? '已批准' : item.status === 'rejected' ? '已拒绝' : '待审核'}
+												</Badge>
+											</div>
 										</div>
-										<div class="flex flex-wrap gap-1">
-											{#each nom.image_paths as p}
-												<span class="text-[10px] bg-muted px-1 py-0.5 rounded truncate max-w-[150px]">{p}</span>
-											{/each}
-										</div>
-										{#if nom.admin_reason}
-											<div class="text-xs text-muted-foreground">管理员: {nom.admin_reason}</div>
-										{/if}
-									</div>
+									{/if}
 								{/each}
 							</div>
-						{/if}
-					</CardContent>
-				</Card>
+						{/each}
+					</div>
+				{/if}
 			</TabsContent>
 		</Tabs>
 
