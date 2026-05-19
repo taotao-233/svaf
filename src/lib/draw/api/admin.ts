@@ -121,6 +121,7 @@ export async function getBannedUsers() {
 export interface BanEntry {
 	user_id: number;
 	reason: string;
+	banned_at: number;
 	banned_until: number;
 	remaining_days: number;
 }

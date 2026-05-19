@@ -76,6 +76,11 @@ let loadingMore = $state(false);
 	let newBanDays = $state(7);
 	let newBanReason = $state('');
 
+	function fmtBanDate(ts: number): string {
+		const d = new Date((ts || 0) * 1000);
+		return d.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+	}
+
 	// Limits
 	let limits = $state<AdminLimits | null>(null);
 	let defaults = $state<AdminLimits | null>(null);
@@ -1153,11 +1158,18 @@ function formatTime(ts: number) {
 							</button>
 						</div>
 						<div class="p-3 space-y-3 text-xs">
-							<div class="flex flex-wrap gap-2">
+							<div class="grid grid-cols-3 gap-2">
 								<div>
+									<p class="text-[10px] text-muted-foreground mb-1">原图 1</p>
 									{#if detailImg.image1}
-										<img src="{currentBaseUrl}/api/uploads/{detailImg.image1}" alt="原图" class="rounded border max-h-48 w-auto h-auto" loading="lazy" />
-																			{/if}
+										<img src="{currentBaseUrl}/api/uploads/{detailImg.image1}" alt="原图1" class="rounded border max-h-48 w-auto h-auto" loading="lazy" />
+									{/if}
+								</div>
+								<div>
+									<p class="text-[10px] text-muted-foreground mb-1">原图 2</p>
+									{#if detailImg.image2}
+										<img src="{currentBaseUrl}/api/uploads/{detailImg.image2}" alt="原图2" class="rounded border max-h-48 w-auto h-auto" loading="lazy" />
+									{/if}
 								</div>
 								<div>
 									<p class="text-[10px] text-muted-foreground mb-1">结果图</p>
@@ -1168,12 +1180,6 @@ function formatTime(ts: number) {
 								<div><span class="text-muted-foreground">生图者：</span>{detailImg.user_id || '?'}</div>
 								<div><span class="text-muted-foreground">时间：</span>{detailImg.mtime ? new Date(detailImg.mtime * 1000).toLocaleString() : '-'}</div>
 							</div>
-							{#if detailImg.image2}
-								<div>
-									<span class="text-muted-foreground">原图 2</span>
-									<img src="{currentBaseUrl}/api/uploads/{detailImg.image2}" alt="原图2" class="rounded border max-h-48 w-auto h-auto" loading="lazy" />
-								</div>
-							{/if}
 							{#if detailImg.prompt}
 								<div>
 									<span class="text-muted-foreground">正向 Prompt：</span>
@@ -1323,10 +1329,11 @@ function formatTime(ts: number) {
 						</Button>
 						{#if bannedUsers.length === 0}
 							<div class="text-sm text-muted-foreground py-4 text-center">无封禁用户</div>
-													<div class="space-y-1.5">
+						{:else}
+							<div class="space-y-1.5">
 								{#each bannedUsers as ban}
 									<div class="flex items-center justify-between border rounded-md px-3 py-2">
-										<span class="text-sm font-mono">{ban.user_id} - {ban.reason || '违规行为'}（{ban.remaining_days || '?'}天）</span>
+										<span class="text-sm font-mono">{ban.user_id} - ({fmtBanDate(ban.banned_at)} - {fmtBanDate(ban.banned_until)})</span>
 										<Button size="sm" variant="ghost" onclick={() => handleUnban(ban.user_id)} disabled={loading}>
 											<Icon icon="mdi:account-check" class="size-4 mr-1" />解封
 										</Button>
