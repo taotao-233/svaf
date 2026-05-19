@@ -70,6 +70,8 @@ let loadingMore = $state(false);
 	// Featured
 	let featuredPaths = $state<string[]>([]);
 	let newFeaturedPath = $state('');
+	let featColumns = $state<string[][]>([]);
+	let featHeights: number[] = [];
 
 	// Banned
 	let bannedUsers = $state<admin.BanEntry[]>([]);
@@ -361,6 +363,20 @@ $effect(() => {
 		rebuildColumns();
 	}
 
+	function rebuildFeatColumns() {
+		const cc = getColumnCount();
+		featColumns = Array.from({ length: cc }, () => []);
+		featHeights = new Array(cc).fill(0);
+		for (const p of featuredPaths) {
+			let minIdx = 0;
+			for (let i = 1; i < featHeights.length; i++) {
+				if (featHeights[i] < featHeights[minIdx]) minIdx = i;
+			}
+			featColumns[minIdx] = [...featColumns[minIdx], p];
+			featHeights[minIdx] += 1;
+		}
+	}
+
 	function rebuildNomImgColumns() {
 		const cc = getColumnCount();
 		nomImgColumns = Array.from({ length: cc }, () => []);
@@ -473,6 +489,7 @@ $effect(() => {
 		try {
 			const res = await admin.getFeatured();
 			featuredPaths = res.items;
+			rebuildFeatColumns();
 		} catch (e) {
 			showMsg('error', e instanceof Error ? e.message : '加载失败');
 		}
@@ -1377,27 +1394,21 @@ function formatTime(ts: number) {
 						{#if featuredPaths.length === 0}
 							<div class="text-sm text-muted-foreground py-4 text-center">无精选图片</div>
 						{:else}
-							<div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-								{#each featuredPaths as path}
-									<div class="relative group">
-										<button
-											class="aspect-square rounded-md overflow-hidden border w-full"
-											onclick={() => openLb(path)}
-										>
-											<img
-												src={getImageProxyUrl(path)}
-												alt={path}
-												class="w-full h-full object-cover"
-												loading="lazy"
-											/>
-										</button>
-										<button
-											class="absolute top-1 right-1 p-0.5 rounded bg-destructive/80 text-white hover:bg-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-											onclick={() => handleRemoveFeatured(path)}
-											title="移除"
-										>
-											<Icon icon="mdi:close" class="size-3.5" />
-										</button>
+							<div class="flex gap-2 items-start">
+								{#each featColumns as col, ci (ci)}
+									<div class="flex flex-1 flex-col gap-2 min-w-0">
+										{#each col as path (ci + '-' + path)}
+											<div class="relative group rounded-md overflow-hidden border cursor-pointer" role="button" tabindex="0" onclick={() => openLb(path)}>
+												<img src={getImageProxyUrl(path)} alt={path} loading="lazy" decoding="async" style="aspect-ratio: 1;" onload={handleImgLoad} class="block w-full h-auto bg-muted" />
+												<button
+													class="absolute top-1 right-1 p-0.5 rounded bg-destructive/80 text-white hover:bg-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+													onclick={() => handleRemoveFeatured(path)}
+													title="移除"
+												>
+													<Icon icon="mdi:close" class="size-3.5" />
+												</button>
+											</div>
+										{/each}
 									</div>
 								{/each}
 							</div>
