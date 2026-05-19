@@ -4,6 +4,7 @@
 	import { Checkbox } from '$lib/components/ui/checkbox';
 	import { Label } from '$lib/components/ui/label';
 	import { Badge } from '$lib/components/ui/badge';
+	import TurnstileWidget from '$lib/components/TurnstileWidget.svelte';
 	import { fetchResolutions } from '$lib/draw/api/client';
 	import { drawEnv } from '$lib/draw/stores/env';
 	import { forumAuth } from '$lib/forum/stores/auth';
@@ -255,7 +256,13 @@
 		</div>
 	{/if}
 
-	<!-- Submit button -->
+	<TurnstileWidget
+			siteKey="0x4AAAAAADSVSh5jjelMNlrv"
+			onToken={(t) => (turnstileToken = t)}
+			onExpired={() => (turnstileToken = '')}
+		/>
+
+		<!-- Submit button -->
 	<Button
 		class="w-full"
 		size="lg"

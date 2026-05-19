@@ -5,13 +5,18 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import { forumAuth } from '$lib/forum/stores/auth';
 	import { drawEnv, apiError } from '$lib/draw/stores/env';
+	import TurnstileWidget from '$lib/components/TurnstileWidget.svelte';
 	import { compressPostImage } from '$lib/forum/utils/image-compression';
 	import { addToQueue } from '$lib/draw/api/client';
 	import { get } from 'svelte/store';
 
 	const STORAGE_KEY = 'draw-img2img';
 
-	let {}: {} = $props();
+	let {
+		turnstileToken = $bindable(''),
+	}: {
+		turnstileToken?: string;
+	} = $props();
 
 	let currentBaseUrl = $state('');
 	let authToken = $state<string | null>(null);
@@ -241,6 +246,7 @@
 				direct_prompt: prompt.trim(),
 				image1_name: uploadData.image1_name,
 				image2_name: uploadData.image2_name || '',
+					turnstile_token: turnstileToken || undefined,
 			});
 			uploading = false;
 			queueSuccess = '成功加入队列！等待生图中，前往"我的"页面查看详情。';

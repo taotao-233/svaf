@@ -24,7 +24,6 @@
 	import FeaturedTab from '$lib/components/draw/FeaturedTab.svelte';
 	import Img2imgTab from '$lib/components/draw/Img2imgTab.svelte';
 		import ImageLightbox from '$lib/components/draw/ImageLightbox.svelte';
-	import TurnstileWidget from '$lib/components/TurnstileWidget.svelte';
 
 	// State
 	let currentBaseUrl = $state('');
@@ -678,13 +677,8 @@ async function startGeneration() {
 						<StyleDialog bind:value={styleTags} bind:name={styleName} onselect={handleStyleSelect} />
 					</div>
 
-					<TurnstileWidget
-						siteKey="0x4AAAAAADSVSh5jjelMNlrv"
-						onToken={(t) => (turnstileToken = t)}
-						onExpired={() => (turnstileToken = '')}
-					/>
-
 					<PromptForm
+						bind:turnstileToken
 						bind:directPrompt
 						bind:negativePrompt
 						bind:nlPrompt
@@ -715,7 +709,7 @@ async function startGeneration() {
 				</TabsContent>
 
 				<TabsContent value="img2img" class="mt-4">
-					<Img2imgTab />
+					<Img2imgTab bind:turnstileToken />
 				</TabsContent>
 
 			</Tabs>
