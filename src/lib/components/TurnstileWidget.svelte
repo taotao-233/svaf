@@ -5,10 +5,12 @@
 
 	let {
 		siteKey,
+		tick = 0,
 		onToken,
 		onExpired
 	}: {
 		siteKey: string;
+		tick?: number;
 		onToken: (token: string) => void;
 		onExpired?: () => void;
 	} = $props();
@@ -18,7 +20,7 @@
 
 	$effect(() => {
 		if (!siteKey || !containerEl) return;
-			if (tick) {} /* force re-render when tick changes */
+		if (tick) {} /* force re-render when tick changes */
 		const container = containerEl;
 		container.innerHTML = '';
 
