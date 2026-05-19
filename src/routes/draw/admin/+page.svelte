@@ -1240,6 +1240,7 @@ function formatTime(ts: number) {
 										</div>
 									{/if}
 								{/each}
+							{/each}
 							</div>
 						{/each}
 					</div>
@@ -1495,15 +1496,16 @@ function formatTime(ts: number) {
 									<div class="flex flex-1 flex-col gap-2 min-w-0">
 										{#each col as path (ci + '-' + path)}
 											{@const item = nomMasonryItems.find((i: any) => i.path === path)}
-												{#if item}
-													<div class="border rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all" onclick={() => nomDialogItem = item}>
-														<img src={getImageProxyUrl(item.path)} alt={item.path} loading="lazy" decoding="async" style="aspect-ratio: 1;" onload={handleImgLoad} class="block w-full h-auto bg-muted" />
-													</div>
-												{/if}
+													{#if item}
+														<div class="border rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all" onclick={() => nomDialogItem = item}>
+															<img src={getImageProxyUrl(item.path)} alt={item.path} loading="lazy" decoding="async" style="aspect-ratio: 1;" onload={handleImgLoad} class="block w-full h-auto bg-muted" />
+														</div>
+													{/if}
+												{/each}
+											</div>
+										{/each}
 									</div>
-								{/each}
-							</div>
-						{/if}
+								{/if}
 					</CardContent>
 				</Card>
 			</TabsContent>
