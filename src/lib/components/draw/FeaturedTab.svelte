@@ -4,8 +4,8 @@
 	import { Alert, AlertDescription } from '$lib/components/ui/alert';
 	import { fetchFeatured, getImageUrl, getImageProxyUrl } from '$lib/draw/api/client';
 	import ImageLightbox from '$lib/components/draw/ImageLightbox.svelte';
-	let masonry: any = null;
 	import type { DrawOutputItem } from '$lib/draw/types';
+import { onMount, onDestroy } from 'svelte';
 
 	const tip = '精选图片由管理员挑选，展示社区优质作品。仅收录SFW';
 
@@ -17,9 +17,14 @@
 
 	let items = $state<DrawOutputItem[]>([]);
 	let loading = $state(true);
-	let displayLimit = $state(5);
+	let displayLimit = $state(50);
 	let hasMore = $state(false);
-	let masonryEl: HTMLDivElement | undefined;
+	let sentinelEl: HTMLDivElement | undefined;
+	let io: IntersectionObserver | null = null;
+
+	let columnCount = $state(4);
+	let imgColumns = $state<string[][]>([[], [], [], []]);
+	let columnHeights: number[] = [0, 0, 0, 0];
 
 	let lbOpen = $state(false);
 	let lbIndex = $state(0);
@@ -30,15 +35,57 @@
 		lbOpen = true;
 	}
 
-	$effect(() => {
-		loadFeatured();
-	});
+	function getColumnCount(): number {
+		if (typeof window === 'undefined') return 4;
+		const w = window.innerWidth;
+		if (w >= 1400) return 6;
+		if (w >= 1024) return 5;
+		if (w >= 768) return 4;
+		if (w >= 480) return 3;
+		return 2;
+	}
+
+	function rebuildColumns() {
+		const display = items.slice(0, displayLimit);
+		columnCount = getColumnCount();
+		imgColumns = Array.from({ length: columnCount }, () => []);
+		columnHeights = new Array(columnCount).fill(0);
+		for (const item of display) {
+			let minIdx = 0;
+			for (let i = 1; i < columnHeights.length; i++) {
+				if (columnHeights[i] < columnHeights[minIdx]) minIdx = i;
+			}
+			imgColumns[minIdx] = [...imgColumns[minIdx], item.path];
+			columnHeights[minIdx] += 1;
+		}
+		hasMore = displayLimit < items.length;
+	}
+
+	function handleImgLoad(e: Event) {
+		const img = e.currentTarget as HTMLImageElement;
+		if (img.naturalWidth && img.naturalHeight) {
+			img.style.aspectRatio = `${img.naturalWidth / img.naturalHeight}`;
+		}
+	}
+
+	function handleResize() {
+		const nu = getColumnCount();
+		if (nu === columnCount) return;
+		rebuildColumns();
+	}
+
+	function showMore() {
+		displayLimit = Math.min(displayLimit + 50, items.length);
+		rebuildColumns();
+	}
 
 	async function loadFeatured() {
 		loading = true;
 		try {
 			const res = await fetchFeatured();
 			items = res.items;
+			displayLimit = 50;
+			rebuildColumns();
 		} catch {
 			items = [];
 		} finally {
@@ -47,52 +94,30 @@
 	}
 
 	$effect(() => {
-		hasMore = displayLimit < items.length;
-		if (masonryEl && items.length > 0) {
-			setTimeout(() => {
-				import('masonry-layout').then(m => {
-					if (masonry) masonry.destroy();
-					masonry = new m.default(masonryEl!, {
-						itemSelector: '.featured-item',
-						columnWidth: '.featured-sizer',
-						percentPosition: true,
-					});
-					const imgs = masonryEl.querySelectorAll("img");
-					let loaded = 0;
-					const total = imgs.length;
-					if (total === 0) return;
-					for (const img of imgs) {
-						if (img.complete) { loaded++; if (loaded === total) masonry.layout(); }
-						else img.addEventListener("load", () => { loaded++; if (loaded === total) masonry.layout(); });
-					}
-				});
-			}, 50);
-		}
+		loadFeatured();
 	});
 
-	function showMoreFeatured() {
-		displayLimit = Math.min(displayLimit + 10, items.length);
-		setTimeout(() => {
-			if (masonryEl) {
-				import('masonry-layout').then(m => {
-					if (masonry) masonry.destroy();
-					masonry = new m.default(masonryEl!, {
-						itemSelector: '.featured-item',
-						columnWidth: '.featured-sizer',
-						percentPosition: true,
-					});
-					const imgs = masonryEl.querySelectorAll("img");
-					let loaded = 0;
-					const total = imgs.length;
-					if (total === 0) return;
-					for (const img of imgs) {
-						if (img.complete) { loaded++; if (loaded === total) masonry.layout(); }
-						else img.addEventListener("load", () => { loaded++; if (loaded === total) masonry.layout(); });
-					}
-				});
-			}
-		}, 100);
-	}
+	$effect(() => {
+		if (sentinelEl && !loading) {
+			io = new IntersectionObserver(
+				(entries) => {
+					if (entries.some((e) => e.isIntersecting && !loading && hasMore)) showMore();
+				},
+				{ rootMargin: '400px 0px' }
+			);
+			io.observe(sentinelEl);
+		}
+		return () => io?.disconnect();
+	});
+
+		onMount(() => {
+		columnCount = getColumnCount();
+		window.addEventListener('resize', handleResize, { passive: true });
+	});
+	onDestroy(() => {
+		io?.disconnect();
+		window.removeEventListener('resize', handleResize);
+	});
 </script>
 
 <div class="space-y-3">
@@ -119,38 +144,41 @@
 	{:else if items.length === 0}
 		<div class="text-xs text-muted-foreground py-8 text-center">暂无精选图片</div>
 	{:else}
-		<div bind:this={masonryEl} class="relative w-full">
-			<div class="featured-sizer w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5"></div>
-			{#each items.slice(0, displayLimit) as item, i (item.path)}
-				<div class="featured-item w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 p-1">
-					<div class="relative group">
-						<button
-							type="button"
-							class="w-full rounded-lg overflow-hidden border hover:ring-2 hover:ring-primary/50 transition-all cursor-pointer"
-							onclick={() => openLightbox(items.indexOf(item))}
-						>
-							<img
-								src={getImageProxyUrl(item.path)}
-								alt={item.path}
-								loading="lazy"
-								decoding="async"
-								class="block w-full h-auto bg-muted"
-							/>
-						</button>
-						<div class="absolute bottom-0 inset-x-0 bg-black/50 text-white text-[10px] px-1 py-0.5 truncate rounded-b-lg pointer-events-none">
-							{item.creator_id || '?'}
-						</div>
-					</div>
+		<div class="flex gap-2 items-start">
+			{#each imgColumns as col, ci (ci)}
+				<div class="flex flex-1 flex-col gap-2 min-w-0">
+					{#each col as path (ci + '-' + path)}
+						{@const item = items.find(i => i.path === path)}
+						{#if item}
+							<div class="relative group rounded-md overflow-hidden border">
+								<button
+									type="button"
+									class="w-full block cursor-pointer"
+									onclick={() => openLightbox(items.indexOf(item))}
+								>
+									<img
+										src={getImageProxyUrl(item.path)}
+										alt={item.path}
+										loading="lazy"
+										decoding="async"
+										style="aspect-ratio: 1;"
+										onload={handleImgLoad}
+										class="block w-full h-auto bg-muted"
+									/>
+								</button>
+								<div class="absolute bottom-0 inset-x-0 bg-black/50 text-white text-[10px] px-1 py-0.5 truncate rounded-b-lg pointer-events-none">
+									{item.creator_id || '?'}
+								</div>
+							</div>
+						{/if}
+					{/each}
 				</div>
 			{/each}
 		</div>
-		{#if hasMore}
-			<div class="flex justify-center pt-2">
-				<Button variant="outline" size="sm" onclick={showMoreFeatured}>
-					加载更多（{items.length - displayLimit} 张）
-				</Button>
-			</div>
+		{#if !hasMore && items.length > 0}
+			<div class="text-center text-xs text-muted-foreground py-2">已加载全部</div>
 		{/if}
+		<div bind:this={sentinelEl} class="h-4"></div>
 	{/if}
 </div>
 
