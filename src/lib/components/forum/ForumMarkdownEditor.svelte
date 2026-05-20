@@ -70,6 +70,8 @@
 	let editor: any = null;
 	let internalValue = value;
 	let keydownCleanup: (() => void) | null = null;
+	let compositionCleanup: (() => void) | null = null;
+	let composing = $state(false);
 	let uploadStatus = $state('');
 	let uploading = $state(false);
 
@@ -201,11 +203,13 @@
 			});
 
 			editor.on('change', () => {
+				if (composing) return;
 				syncValue(editor?.getMarkdown() || '');
 				void updatePreviewClasses();
 			});
 
 			const keydownHandler = (event: KeyboardEvent) => {
+				if (event.isComposing) return;
 				if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
 					event.preventDefault();
 					onsubmit?.();
@@ -216,6 +220,20 @@
 
 			containerEl.addEventListener('keydown', keydownHandler);
 			keydownCleanup = () => containerEl?.removeEventListener('keydown', keydownHandler);
+
+			const compositionStart = () => { composing = true; };
+			const compositionEnd = () => {
+				composing = false;
+				syncValue(editor?.getMarkdown() || '');
+				void updatePreviewClasses();
+			};
+
+			containerEl.addEventListener('compositionstart', compositionStart);
+			containerEl.addEventListener('compositionend', compositionEnd);
+			compositionCleanup = () => {
+				containerEl?.removeEventListener('compositionstart', compositionStart);
+				containerEl?.removeEventListener('compositionend', compositionEnd);
+			};
 
 			await updatePreviewClasses();
 			setDisabledState(disabled || submitting);
@@ -229,6 +247,7 @@
 	onDestroy(() => {
 		keydownCleanup?.();
 		keydownCleanup = null;
+		compositionCleanup?.();
 		editor?.destroy();
 		editor = null;
 	});
