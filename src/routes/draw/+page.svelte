@@ -573,8 +573,9 @@ async function startGeneration() {
 		<div class="flex items-center gap-2">
 			<Icon icon="mdi:palette" class="size-6 text-primary" />
 			<h1 class="text-xl font-bold">AI 生图</h1>
-			<a href="https://2x.nz/posts/ai-wife/#%E6%96%B0%E7%89%88-2xnzdraw-%E4%BD%BF%E7%94%A8%E6%8A%80%E5%B7%A7" target="_blank" rel="noopener noreferrer" class="no-underline">
-				<Button variant="outline" size="sm" class="rainbow-btn text-xs h-7 px-2.5">使用技巧？</Button>
+			<a href="https://2x.nz/posts/ai-wife/#%E6%96%B0%E7%89%88-2xnzdraw-%E4%BD%BF%E7%94%A8%E6%8A%80%E5%B7%A7" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-2.5 h-7 rounded-4xl text-xs font-medium border border-border bg-input/30 text-muted-foreground hover:bg-input/50 hover:text-foreground transition-all no-underline shrink-0">
+				<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+				使用技巧
 			</a>
 				<PageViews pathname="/draw/" class="text-sm text-muted-foreground" />
 			{#if onlineCount > 0}
@@ -925,27 +926,5 @@ async function startGeneration() {
 />
 </div>
 
-<style>
-	.no-underline {
-		text-decoration: none;
-	}
-	.rainbow-btn {
-		background: linear-gradient(90deg, #ff6b6b, #ffd93d, #6bcb77, #4d96ff, #9b59b6, #ff6b6b);
-		background-size: 300% 100%;
-		animation: rainbow-shift 4s linear infinite;
-		border: none;
-		color: white;
-		font-weight: 600;
-		transition: opacity 0.2s, box-shadow 0.2s;
-	}
-	.rainbow-btn:hover {
-		opacity: 0.9;
-		box-shadow: 0 0 16px rgba(255, 107, 107, 0.4);
-	}
 
-	@keyframes rainbow-shift {
-		0% { background-position: 0% 50%; }
-		100% { background-position: 300% 50%; }
-	}
-</style>
 
