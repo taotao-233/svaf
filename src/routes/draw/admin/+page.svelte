@@ -1679,7 +1679,8 @@ function formatTime(ts: number) {
 											{/each}
 										</div>
 									</div>
-																	<div class="space-y-1.5">
+								{:else if p.provider === 'custom'}
+									<div class="space-y-1.5">
 										<Label class="text-xs">API 端点 <span class="text-[9px] text-muted-foreground">（完整路径，含 /v1）</span></Label>
 										<Input class="text-xs" bind:value={p.custom_endpoint} placeholder="https://api.openai.com/v1" />
 									</div>
