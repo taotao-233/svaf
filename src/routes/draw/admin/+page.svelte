@@ -1034,6 +1034,9 @@ function formatTime(ts: number) {
 	let debugInterval: ReturnType<typeof setInterval> | null = null;
 
 	$effect(() => {
+		if (activeTab !== 'llm') {
+			llmModels = null;
+		}
 		if (activeTab === 'debug') {
 			loadDebug();
 			debugInterval = setInterval(loadDebug, 2000);
@@ -1705,10 +1708,10 @@ function formatTime(ts: number) {
 										<p class="text-[10px] text-muted-foreground mb-1">可用模型（{llmModels.length} 个）：</p>
 										{#if llmModels.length === 0}
 											<p class="text-xs text-muted-foreground">无可用模型或探测失败</p>
-																					{#each llmModels as model}
+										{:else}
+											{#each llmModels as model}
 												<div class="text-xs py-0.5 hover:bg-accent rounded px-1 cursor-pointer"
 													onclick={() => {
-														/* full id */
 														if (p.provider === 'google') p.google_model = model;
 														else p.custom_model = model;
 													}}>{model}</div>
