@@ -6,7 +6,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
 
 const postsDir = path.join(root, 'src', 'content', 'posts');
-const imageCacheDir = path.join(root, '.image-cache');
 const backupDir = path.join(root, 'tmp', 'cleanup-backup');
 
 const IMG_EXTS = new Set(['.png', '.jpg', '.jpeg', '.webp', '.gif', '.avif', '.svg', '.bmp']);
@@ -44,34 +43,8 @@ function extractUsedImages(content) {
 	return used;
 }
 
-function collectOrphanedImages(slug, usedImages) {
-	const imgDir = path.join(postsDir, slug, 'img');
-	if (!fs.existsSync(imgDir)) return [];
-	const files = fs.readdirSync(imgDir);
-	const orphaned = [];
-	for (const f of files) {
-		const ext = path.extname(f).toLowerCase();
-		if (!IMG_EXTS.has(ext)) continue;
-		if (!usedImages.has(f)) orphaned.push(f);
-	}
-	return orphaned;
-}
-
-function collectCacheOrphans(slug, usedImages) {
-	const cacheDir = path.join(imageCacheDir, slug, 'img');
-	if (!fs.existsSync(cacheDir)) return [];
-	const files = fs.readdirSync(cacheDir);
-	const orphaned = [];
-	for (const f of files) {
-		const ext = path.extname(f).toLowerCase();
-		if (!IMG_EXTS.has(ext)) continue;
-		if (!usedImages.has(f)) orphaned.push(f);
-	}
-	return orphaned;
-}
-
 function main() {
-	console.log('\n  🔍 扫描未使用的文章图片...\n');
+	console.log('\n  🔍 扫描未被文章引用的图片...\n');
 
 	const posts = getAllPosts();
 	if (posts.length === 0) {
@@ -79,8 +52,7 @@ function main() {
 		process.exit(0);
 	}
 
-	const allOrphans = [];
-	const cacheOrphans = [];
+	const orphans = [];
 
 	for (const slug of posts.sort()) {
 		const mdPath = path.join(postsDir, slug, 'index.md');
@@ -88,52 +60,27 @@ function main() {
 		const used = extractUsedImages(content);
 
 		const imgDir = path.join(postsDir, slug, 'img');
-		if (fs.existsSync(imgDir)) {
-			const files = fs.readdirSync(imgDir);
-			for (const f of files) {
-				const ext = path.extname(f).toLowerCase();
-				if (!IMG_EXTS.has(ext)) continue;
-				if (!used.has(f)) {
-					allOrphans.push({ slug, file: f, source: 'img' });
-				}
-			}
-		}
+		if (!fs.existsSync(imgDir)) continue;
 
-		const cacheDir = path.join(imageCacheDir, slug, 'img');
-		if (fs.existsSync(cacheDir)) {
-			const files = fs.readdirSync(cacheDir);
-			for (const f of files) {
-				const ext = path.extname(f).toLowerCase();
-				if (!IMG_EXTS.has(ext)) continue;
-				if (!used.has(f)) {
-					cacheOrphans.push({ slug, file: f, source: '.image-cache' });
-				}
-			}
+		const files = fs.readdirSync(imgDir);
+		for (const f of files) {
+			const ext = path.extname(f).toLowerCase();
+			if (!IMG_EXTS.has(ext)) continue;
+			if (!used.has(f)) orphans.push({ slug, file: f });
 		}
 	}
 
-	if (allOrphans.length === 0 && cacheOrphans.length === 0) {
+	if (orphans.length === 0) {
 		console.log('  ✅ 所有图片均有被引用，无需清理。\n');
 		process.exit(0);
 	}
 
-	if (allOrphans.length > 0) {
-		console.log(`  📦 源目录 (img/) 中发现 ${allOrphans.length} 个未使用图片：\n`);
-		for (const { slug, file } of allOrphans) {
-			console.log(`    ${slug}/img/${file}`);
-		}
-		console.log('');
+	console.log(`  发现 ${orphans.length} 个未使用的图片：\n`);
+	for (const { slug, file } of orphans) {
+		console.log(`    ${slug}/img/${file}`);
 	}
 
-	if (cacheOrphans.length > 0) {
-		console.log(`  📦 缓存目录 (.image-cache/) 中发现 ${cacheOrphans.length} 个未使用图片：\n`);
-		for (const { slug, file } of cacheOrphans) {
-			console.log(`    .image-cache/${slug}/img/${file}`);
-		}
-		console.log('');
-	}
-
-	console.log('  ⚠️   操作前会自动备份到 tmp/cleanup-backup/\n');
+	console.log(`\n  ⚠️   操作前会自动备份到 tmp/cleanup-backup/`);
 	console.log('  是否删除这些文件？(y/N): ');
 
 	process.stdin.once('data', async (buf) => {
@@ -146,23 +93,18 @@ function main() {
 		const timestamp = Date.now();
 		const backupRoot = path.join(backupDir, String(timestamp));
 
-		// backup then delete
-		const all = [...allOrphans, ...cacheOrphans];
-		for (const { slug, file, source } of all) {
-			const srcDir = source === 'img'
-				? path.join(postsDir, slug, 'img')
-				: path.join(imageCacheDir, slug, 'img');
-			const src = path.join(srcDir, file);
+		for (const { slug, file } of orphans) {
+			const src = path.join(postsDir, slug, 'img', file);
 			if (!fs.existsSync(src)) continue;
 
-			const dest = path.join(backupRoot, source === 'img' ? slug : `.image-cache/${slug}`, 'img');
+			const dest = path.join(backupRoot, slug, 'img');
 			fs.mkdirSync(dest, { recursive: true });
 			fs.copyFileSync(src, path.join(dest, file));
 			fs.unlinkSync(src);
-			console.log(`  🗑️   ${source}/${slug}/img/${file}`);
+			console.log(`  🗑️   ${slug}/img/${file}`);
 		}
 
-		console.log(`\n  ✅ 已删除 ${all.length} 个文件，备份在 tmp/cleanup-backup/${timestamp}/\n`);
+		console.log(`\n  ✅ 已删除 ${orphans.length} 个文件，备份在 tmp/cleanup-backup/${timestamp}/\n`);
 		process.exit(0);
 	});
 }
