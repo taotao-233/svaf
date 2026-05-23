@@ -95,7 +95,7 @@ let loadingMore = $state(false);
 
 	// Credits / Wallet
 	let wallets = $state<Array<{ user_id: number; balance: number; total_purchased: number; _edit?: number }>>([]);
-	let plans = $state<Array<{ id: string; name: string; points: number; price: number; plan_id: string; sku_id: string; _name?: string; _points?: number; _price?: number; _plan_id?: string; _sku_id?: string }>>([]);
+	let plans = $state<Array<{ id: string; name: string; points: number | string; price: number | string; plan_id: string; sku_id: string }>>([]);
 
 	async function loadCredits() {
 		try {
@@ -1583,16 +1583,16 @@ function formatTime(ts: number) {
 							<p class="text-xs font-medium mb-2">充值计划</p>
 							{#each plans as plan}
 								<div class="flex items-center gap-2 text-xs border rounded-lg px-3 py-2 mb-1">
-									<input bind:value={plan._name ?? plan.name} class="w-24 h-7 px-2 rounded border bg-transparent text-xs" placeholder="名称" />
-									<input bind:value={plan._points ?? plan.points} type="number" class="w-16 h-7 px-2 rounded border bg-transparent text-xs" placeholder="点数" />
-									<input bind:value={plan._price ?? plan.price} type="number" step="0.01" class="w-16 h-7 px-2 rounded border bg-transparent text-xs" placeholder="价格" />
-									<input bind:value={plan._plan_id ?? plan.plan_id} class="w-24 h-7 px-2 rounded border bg-transparent text-xs truncate" placeholder="plan_id" />
-									<input bind:value={plan._sku_id ?? plan.sku_id} class="w-24 h-7 px-2 rounded border bg-transparent text-xs truncate" placeholder="sku_id" />
-									<Button size="sm" variant="outline" class="h-7 text-xs" onclick={() => admin.savePlan({ id: plan.id, name: plan._name ?? plan.name, points: Number(plan._points ?? plan.points), price: Number(plan._price ?? plan.price), plan_id: plan._plan_id ?? plan.plan_id, sku_id: plan._sku_id ?? plan.sku_id })}>保存</Button>
+									<input bind:value={plan.name} class="w-24 h-7 px-2 rounded border bg-transparent text-xs" placeholder="名称" />
+									<input bind:value={plan.points} type="number" class="w-16 h-7 px-2 rounded border bg-transparent text-xs" placeholder="点数" />
+									<input bind:value={plan.price} type="number" step="0.01" class="w-16 h-7 px-2 rounded border bg-transparent text-xs" placeholder="价格" />
+									<input bind:value={plan.plan_id} class="w-24 h-7 px-2 rounded border bg-transparent text-xs truncate" placeholder="plan_id" />
+									<input bind:value={plan.sku_id} class="w-24 h-7 px-2 rounded border bg-transparent text-xs truncate" placeholder="sku_id" />
+									<Button size="sm" variant="outline" class="h-7 text-xs" onclick={() => admin.savePlan({ id: plan.id, name: plan.name, points: Number(plan.points), price: Number(plan.price), plan_id: plan.plan_id, sku_id: plan.sku_id })}>保存</Button>
 									<Button size="sm" variant="destructive" class="h-7 text-xs" onclick={() => admin.deletePlan(plan.id).then(loadCredits)}>删除</Button>
 								</div>
 							{/each}
-							<Button size="sm" variant="ghost" class="text-xs mt-1" onclick={() => { plans = [...plans, { id: 'new_' + Date.now(), name: '', points: 0, price: 0, plan_id: '', sku_id: '', _name: '', _points: 0, _price: 0, _plan_id: '', _sku_id: '' }]; }}>+ 新增计划</Button>
+							<Button size="sm" variant="ghost" class="text-xs mt-1" onclick={() => { plans = [...plans, { id: 'new_' + Date.now(), name: '', points: '', price: '', plan_id: '', sku_id: '' }]; }}>+ 新增计划</Button>
 						</div>
 					</CardContent>
 				</Card>
