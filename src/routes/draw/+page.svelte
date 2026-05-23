@@ -955,7 +955,6 @@ async function startGeneration(mode = 'wai') {
 									</Button>
 								</div>
 							{/if}
-							</div>
 						{/if}
 				{/if}
 			{/if}
