@@ -898,7 +898,7 @@ $effect(() => {
 	// --- Workflows ---
 
 	function loadWorkflowsAll() {
-		fetchWorkflows().then(res => { workflows = res.workflows || []; }).catch(() => showMsg('error', '加载工作流失败'));
+		fetchWorkflows('WAI').then(res => { workflows = res.workflows || []; }).catch(() => showMsg('error', '加载工作流失败'));
 	}
 
 	function startWfRename(wf: string) {
