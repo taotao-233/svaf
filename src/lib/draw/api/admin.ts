@@ -309,6 +309,13 @@ export async function resolveRecommendation(recId: string, action: 'approve' | '
 		return drawRequest<{ ok: boolean; plans: any[] }>(`/api/draw/admin/plans/${id}`, { method: 'DELETE' });
 	}
 
+	export async function givePoints(userId: number | null, points: number) {
+		return drawRequest<{ ok: boolean; count: number }>('/api/draw/admin/wallets/give', {
+			method: 'POST',
+			json: { user_id: userId, points }
+		});
+	}
+
 	export async function savePointsConfig(cfg: { text_to_image: number; image_to_image: number; llm_translate: number }) {
 		return drawRequest<{ ok: boolean; config: any }>('/api/draw/admin/points-config', {
 			method: 'POST',

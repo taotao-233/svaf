@@ -97,6 +97,18 @@ let loadingMore = $state(false);
 	let wallets = $state<Array<{ user_id: number; balance: number; total_purchased: number; _edit?: number }>>([]);
 	let adminPlans = $state<Array<{ id: string; name: string; points: number; url: string }>>([]);
 	let pointsCfg = $state<{ text_to_image: number; image_to_image: number; llm_translate: number }>({ text_to_image: 10, image_to_image: 100, llm_translate: 1 });
+	let givePointsValue = $state(0);
+	let givePointsTarget = $state('');
+	let givePointsUid = $state(0);
+
+	async function handleGivePoints() {
+		if (!givePointsValue || givePointsValue <= 0) return;
+		const userId = givePointsTarget === 'uid' ? givePointsUid : null;
+		const r = await admin.givePoints(userId, givePointsValue);
+		alert(`已赠送 ${r.count} 个用户`);
+		givePointsValue = 0;
+		loadCredits();
+	}
 
 	async function loadCredits() {
 		try {
@@ -1577,6 +1589,18 @@ function formatTime(ts: number) {
 							<label class="flex items-center gap-1">图生图 <input type="number" bind:value={pointsCfg.image_to_image} class="w-16 h-7 px-2 rounded border bg-transparent text-xs" /></label>
 							<label class="flex items-center gap-1">翻译 <input type="number" bind:value={pointsCfg.llm_translate} class="w-16 h-7 px-2 rounded border bg-transparent text-xs" /></label>
 							<Button size="sm" variant="outline" class="h-7 text-xs" onclick={() => admin.savePointsConfig(pointsCfg).then(loadCredits)}>保存点数</Button>
+						</div>
+						<div class="flex flex-wrap items-center gap-2 text-xs border-t pt-3">
+							<span class="font-medium">赠送点数</span>
+							<input type="number" bind:value={givePointsValue} class="w-20 h-7 px-2 rounded border bg-transparent text-xs" placeholder="数量" />
+							<select bind:value={givePointsTarget} class="h-7 px-2 rounded border bg-transparent text-xs">
+								<option value="">全部用户</option>
+								<option value="uid">指定 UID</option>
+							</select>
+							{#if givePointsTarget === 'uid'}
+								<input type="number" bind:value={givePointsUid} class="w-20 h-7 px-2 rounded border bg-transparent text-xs" placeholder="UID" />
+							{/if}
+							<Button size="sm" variant="outline" class="h-7 text-xs" onclick={handleGivePoints} disabled={!givePointsValue || givePointsValue <= 0}>赠送</Button>
 						</div>
 						{#if wallets.length > 0}
 							<div class="space-y-2">
