@@ -12,6 +12,7 @@
 	import * as Table from '$lib/components/ui/table';
 	import { forumAuth } from '$lib/forum/stores/auth';
 	import { drawEnv } from '$lib/draw/stores/env';
+	import { get } from 'svelte/store';
 	import * as admin from '$lib/draw/api/admin';
 	import { getImageProxyUrl, getImageUrl, getThumbnailUrl, forkOutputImage, clearQueue, fetchDebugInfo } from '$lib/draw/api/client';
 	import { pendingFork } from '$lib/draw/stores/fork';
@@ -117,7 +118,8 @@ let loadingMore = $state(false);
 			adminPlans = pr.items;
 		} catch {}
 		try {
-			const r = await fetch('/api/wallet/points-config').then(res => res.json());
+			const baseUrl = get(drawEnv.baseUrl);
+			const r = await fetch(baseUrl + '/api/wallet/points-config').then(res => res.json());
 			if (r.text_to_image != null) pointsCfg = r;
 		} catch {}
 	}
