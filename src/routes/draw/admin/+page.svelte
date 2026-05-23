@@ -2156,7 +2156,12 @@ function formatTime(ts: number) {
 									<div class="flex gap-2">
 										<div class="flex-1 space-y-1">
 											<Label class="text-xs">分类</Label>
-											<Input bind:value={wfMetaEditCat} placeholder="分类名称" />
+											<input type="text" list="wf-cats" bind:value={wfMetaEditCat} placeholder="选择或输入分类" class="w-full h-8 px-2 rounded border bg-transparent text-xs" />
+											<datalist id="wf-cats">
+												{#each [...new Set(workflows.map(w => w.category).filter(Boolean))] as cat}
+													<option value={cat} />
+												{/each}
+											</datalist>
 										</div>
 										<div class="flex-1 space-y-1">
 											<Label class="text-xs">Lora 链接</Label>
