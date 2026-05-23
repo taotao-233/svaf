@@ -227,10 +227,10 @@ export async function fetchWalletBalance() {
 	return drawRequest<{ balance: number; total_purchased: number }>('/api/wallet/balance');
 }
 
-export async function createWalletOrder(payUrl?: string) {
-	return drawRequest<{ pay_url: string; order_id: string }>('/api/wallet/create-order', {
+export async function createWalletOrder(payUrl: string, points: number) {
+	return drawRequest<{ pay_url: string; order_id: string; points: number }>('/api/wallet/create-order', {
 		method: 'POST',
-		json: { pay_url: payUrl || '' }
+		json: { pay_url: payUrl, points }
 	});
 }
 

@@ -485,11 +485,11 @@ async function startGeneration() {
 		} catch { walletBalance = null; }
 	}
 
-	async function handleRecharge(planUrl?: string) {
-		if (recharging || !planUrl) return;
+	async function handleRecharge(plan: { url: string; points: number }) {
+		if (recharging || !plan.url) return;
 		recharging = true;
 		try {
-			const r = await createWalletOrder(planUrl);
+			const r = await createWalletOrder(plan.url, plan.points);
 			window.open(r.pay_url, '_blank');
 			rechargeOpen = false;
 		} catch { } finally { recharging = false; }
@@ -1006,7 +1006,7 @@ async function startGeneration() {
 					<p class="text-xs text-muted-foreground py-4 text-center">暂无充值计划</p>
 				{:else}
 					{#each plans as plan}
-						<Button class="w-full" variant="outline" onclick={() => handleRecharge(plan.url)} disabled={recharging}>
+						<Button class="w-full" variant="outline" onclick={() => handleRecharge(plan)} disabled={recharging}>
 							<div class="flex items-center justify-between w-full">
 								<span>{plan.name}</span>
 								<span class="text-amber-500 font-bold">{plan.points.toLocaleString()} 点</span>
