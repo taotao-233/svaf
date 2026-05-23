@@ -37,6 +37,7 @@
 	let recharging = $state(false);
 	let plans = $state<Array<{ id: string; name: string; url: string; points: number }>>([]);
 	let pointsConfig = $state<{ text_to_image: number; image_to_image: number; llm_translate: number } | null>(null);
+	let walletTimer: ReturnType<typeof setInterval> | null = null;
 	let queuing = $state(false);
 	let queueSuccess = $state("");
 	let queueError = $state("");
@@ -218,6 +219,7 @@
 			walletBalance = null;
 			plans = [];
 			pointsConfig = null;
+			if (walletTimer) { clearInterval(walletTimer); walletTimer = null; }
 		}
 	});
 
@@ -471,6 +473,15 @@ async function startGeneration() {
 		try {
 			const r = await fetchWalletBalance();
 			walletBalance = r.balance;
+			// 有余额时有 pending 订单 → 继续轮询
+			if (walletTimer) return;
+			// 每 8 秒轮询一次余额（后台会查爱发电订单状态）
+			walletTimer = setInterval(async () => {
+				try {
+					const r2 = await fetchWalletBalance();
+					walletBalance = r2.balance;
+				} catch {}
+			}, 8000);
 		} catch { walletBalance = null; }
 	}
 
@@ -481,7 +492,6 @@ async function startGeneration() {
 			const r = await createWalletOrder(planUrl);
 			window.open(r.pay_url, '_blank');
 			rechargeOpen = false;
-			setTimeout(loadWalletBalance, 5000);
 		} catch { } finally { recharging = false; }
 	}
 
