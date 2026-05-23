@@ -308,3 +308,10 @@ export async function resolveRecommendation(recId: string, action: 'approve' | '
 	export async function deletePlan(id: string) {
 		return drawRequest<{ ok: boolean; plans: any[] }>(`/api/draw/admin/plans/${id}`, { method: 'DELETE' });
 	}
+
+	export async function savePointsConfig(cfg: { text_to_image: number; image_to_image: number; llm_translate: number }) {
+		return drawRequest<{ ok: boolean; config: any }>('/api/draw/admin/points-config', {
+			method: 'POST',
+			json: cfg
+		});
+	}

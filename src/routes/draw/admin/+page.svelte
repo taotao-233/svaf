@@ -96,12 +96,17 @@ let loadingMore = $state(false);
 	// Credits / Wallet
 	let wallets = $state<Array<{ user_id: number; balance: number; total_purchased: number; _edit?: number }>>([]);
 	let adminPlans = $state<Array<{ id: string; name: string; points: number; url: string }>>([]);
+	let pointsCfg = $state<{ text_to_image: number; image_to_image: number; llm_translate: number }>({ text_to_image: 10, image_to_image: 100, llm_translate: 1 });
 
 	async function loadCredits() {
 		try {
 			const [wr, pr] = await Promise.all([admin.getWallets(), admin.getPlans()]);
 			wallets = wr.items.map(w => ({ ...w, _edit: w.balance }));
 			adminPlans = pr.items;
+		} catch {}
+		try {
+			const r = await fetch('/api/wallet/points-config').then(res => res.json());
+			if (r.text_to_image != null) pointsCfg = r;
 		} catch {}
 	}
 
@@ -1566,6 +1571,13 @@ function formatTime(ts: number) {
 					</CardHeader>
 					<CardContent class="space-y-4">
 						<Button size="sm" onclick={loadCredits} disabled={loading}>刷新</Button>
+						<div class="flex flex-wrap items-center gap-2 text-xs">
+							<span class="font-medium">消耗配置</span>
+							<label class="flex items-center gap-1">文生图 <input type="number" bind:value={pointsCfg.text_to_image} class="w-16 h-7 px-2 rounded border bg-transparent text-xs" /></label>
+							<label class="flex items-center gap-1">图生图 <input type="number" bind:value={pointsCfg.image_to_image} class="w-16 h-7 px-2 rounded border bg-transparent text-xs" /></label>
+							<label class="flex items-center gap-1">翻译 <input type="number" bind:value={pointsCfg.llm_translate} class="w-16 h-7 px-2 rounded border bg-transparent text-xs" /></label>
+							<Button size="sm" variant="outline" class="h-7 text-xs" onclick={() => admin.savePointsConfig(pointsCfg).then(loadCredits)}>保存点数</Button>
+						</div>
 						{#if wallets.length > 0}
 							<div class="space-y-2">
 								{#each wallets as w}
