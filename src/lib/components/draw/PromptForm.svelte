@@ -279,36 +279,42 @@
 					></textarea>
 				</div>
 			</div>
-			{#if presets.length > 0}
-				<div class="space-y-1.5">
-					<div class="flex items-center justify-between">
-						<Label class="text-xs font-medium">预设</Label>
-						<button onclick={() => { newPresetName = ''; newPresetContent = ''; newPresetType = 'positive'; presetDialogOpen = true; }} class="text-xs text-primary hover:underline flex items-center gap-0.5">
-							<Icon icon="mdi:plus" class="size-3.5" />新建
-						</button>
+			{#if forumAuth.getToken()}
+				<div class="space-y-2 pt-1">
+					<div>
+						<div class="flex items-center justify-between">
+							<Label class="text-xs font-medium text-primary/80">正面预设</Label>
+							<button onclick={() => { newPresetName = ''; newPresetContent = ''; newPresetType = 'positive'; presetDialogOpen = true; }} class="text-xs text-primary hover:underline flex items-center gap-0.5">
+								<Icon icon="mdi:plus" class="size-3.5" />新建
+							</button>
+						</div>
+						{#each presets.filter(p => p.type === 'positive') as p}
+							<div class="flex items-center gap-1 group mt-1">
+								<button onclick={() => applyPreset(p)} class="flex-1 text-left text-xs px-2 py-1 rounded border border-border hover:bg-accent hover:border-primary/50 transition-all truncate">{p.name}</button>
+								<button onclick={() => handleDeletePreset(p.id)} class="size-5 flex items-center justify-center rounded text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" title="删除"><Icon icon="mdi:close" class="size-3" /></button>
+							</div>
+						{/each}
+						{#if presets.filter(p => p.type === 'positive').length === 0}
+							<div class="text-[10px] text-muted-foreground pt-1">暂无正面预设</div>
+						{/if}
 					</div>
-					{#each presets.filter(p => p.type === 'positive') as p}
-						<div class="flex items-center gap-1 group">
-							<button onclick={() => applyPreset(p)} class="flex-1 text-left text-xs px-2 py-1 rounded border border-border hover:bg-accent hover:border-primary/50 transition-all truncate">
-								{p.name}
+					<div>
+						<div class="flex items-center justify-between">
+							<Label class="text-xs font-medium text-red-400/80">反面预设</Label>
+							<button onclick={() => { newPresetName = ''; newPresetContent = ''; newPresetType = 'negative'; presetDialogOpen = true; }} class="text-xs text-primary hover:underline flex items-center gap-0.5">
+								<Icon icon="mdi:plus" class="size-3.5" />新建
 							</button>
-							<button onclick={() => handleDeletePreset(p.id)} class="size-5 flex items-center justify-center rounded text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" title="删除"><Icon icon="mdi:close" class="size-3" /></button>
 						</div>
-					{/each}
-					{#each presets.filter(p => p.type === 'negative') as p}
-						<div class="flex items-center gap-1 group">
-							<button onclick={() => applyPreset(p)} class="flex-1 text-left text-xs px-2 py-1 rounded border border-border hover:bg-accent hover:border-red-300/50 transition-all truncate">
-								{p.name}
-							</button>
-							<button onclick={() => handleDeletePreset(p.id)} class="size-5 flex items-center justify-center rounded text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" title="删除"><Icon icon="mdi:close" class="size-3" /></button>
-						</div>
-					{/each}
-				</div>
-			{:else if forumAuth.getToken()}
-				<div class="flex items-center gap-1.5 pt-1">
-					<button onclick={() => { newPresetName = ''; newPresetContent = ''; newPresetType = 'positive'; presetDialogOpen = true; }} class="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-0.5">
-						<Icon icon="mdi:plus-circle-outline" class="size-3.5" />添加预设
-					</button>
+						{#each presets.filter(p => p.type === 'negative') as p}
+							<div class="flex items-center gap-1 group mt-1">
+								<button onclick={() => applyPreset(p)} class="flex-1 text-left text-xs px-2 py-1 rounded border border-border hover:bg-accent hover:border-red-300/50 transition-all truncate">{p.name}</button>
+								<button onclick={() => handleDeletePreset(p.id)} class="size-5 flex items-center justify-center rounded text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" title="删除"><Icon icon="mdi:close" class="size-3" /></button>
+							</div>
+						{/each}
+						{#if presets.filter(p => p.type === 'negative').length === 0}
+							<div class="text-[10px] text-muted-foreground pt-1">暂无反面预设</div>
+						{/if}
+					</div>
 				</div>
 			{/if}
 		{/if}
