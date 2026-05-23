@@ -170,7 +170,11 @@
 	// Tab state
 	let activeTab = $state(location.hash?.slice(1) || 'generate');
 	let genSubTab = $state(location.hash?.includes('img2img') ? 'img2img' : 'txt2img');
-	let genTxtSubTab = $state('wai');
+	let genTxtSubTab = $state((typeof localStorage !== 'undefined' && localStorage.getItem('draw-txt-sub-tab')) || 'wai');
+
+	$effect(() => {
+		try { localStorage.setItem('draw-txt-sub-tab', genTxtSubTab); } catch {}
+	});
 
 	// 从 URL hash 恢复 tab 状态
 	$effect(() => {
