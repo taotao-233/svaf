@@ -36,7 +36,7 @@
 	let rechargeOpen = $state(false);
 	let recharging = $state(false);
 	let plans = $state<Array<{ id: string; name: string; url: string; points: number }>>([]);
-	let pointsConfig = $state<{ text_to_image: number; image_to_image: number; llm_translate: number } | null>(null);
+	let pointsConfig = $state<{ text_to_image: number; image_to_image: number; llm_translate: number; signup_bonus: number } | null>(null);
 	let walletTimer: ReturnType<typeof setInterval> | null = null;
 	let queuing = $state(false);
 	let queueSuccess = $state("");
