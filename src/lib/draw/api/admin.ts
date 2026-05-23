@@ -280,3 +280,31 @@ export async function resolveRecommendation(recId: string, action: 'approve' | '
 			json: { id, action, reason: reason || '' }
 		});
 	}
+
+	// --- Wallet / Credits ---
+
+	export async function getWallets() {
+		return drawRequest<{ items: Array<{ user_id: number; balance: number; total_purchased: number }> }>('/api/draw/admin/wallets');
+	}
+
+	export async function setWalletBalance(userId: number, balance: number, totalPurchased?: number) {
+		return drawRequest<{ ok: boolean; wallet: { balance: number; total_purchased: number } }>('/api/draw/admin/wallets/set', {
+			method: 'POST',
+			json: { user_id: userId, balance, total_purchased: totalPurchased }
+		});
+	}
+
+	export async function getPlans() {
+		return drawRequest<{ items: Array<{ id: string; name: string; points: number; price: number; plan_id: string; sku_id: string }> }>('/api/draw/admin/plans');
+	}
+
+	export async function savePlan(plan: { id: string; name: string; points: number; price: number; plan_id: string; sku_id: string }) {
+		return drawRequest<{ ok: boolean; plans: any[] }>('/api/draw/admin/plans', {
+			method: 'POST',
+			json: plan
+		});
+	}
+
+	export async function deletePlan(id: string) {
+		return drawRequest<{ ok: boolean; plans: any[] }>(`/api/draw/admin/plans/${id}`, { method: 'DELETE' });
+	}

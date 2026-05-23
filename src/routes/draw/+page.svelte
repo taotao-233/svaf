@@ -13,7 +13,7 @@
 	import { consumeFork } from '$lib/draw/stores/fork';
 	import { onMount, onDestroy } from 'svelte';
 	import type { WsStatusEvent, DrawWorkflow, DrawRecommendation } from '$lib/draw/types';
-	const ANNOUNCEMENT_TEXT = '由于压力过大，我们正在考虑收费方式，您可以前往 https://wj.qq.com/s2/26779091/f0ae/ 投出宝贵的一票。';
+	const ANNOUNCEMENT_TEXT = '';
 
 	let announcementOpen = $state(false);
 

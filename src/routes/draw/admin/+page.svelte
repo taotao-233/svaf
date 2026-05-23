@@ -93,6 +93,18 @@ let loadingMore = $state(false);
 		return d.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
 	}
 
+	// Credits / Wallet
+	let wallets = $state<Array<{ user_id: number; balance: number; total_purchased: number; _edit?: number }>>([]);
+	let plans = $state<Array<{ id: string; name: string; points: number; price: number; plan_id: string; sku_id: string; _name?: string; _points?: number; _price?: number; _plan_id?: string; _sku_id?: string }>>([]);
+
+	async function loadCredits() {
+		try {
+			const [wr, pr] = await Promise.all([admin.getWallets(), admin.getPlans()]);
+			wallets = wr.items.map(w => ({ ...w, _edit: w.balance }));
+			plans = pr.items;
+		} catch {}
+	}
+
 	// Limits
 	let limits = $state<AdminLimits | null>(null);
 	let defaults = $state<AdminLimits | null>(null);
@@ -990,6 +1002,9 @@ $effect(() => {
 			case 'collaborators':
 				loadCollaboratorsTab();
 				break;
+			case 'credits':
+				loadCredits();
+				break;
 			case 'limits':
 				loadLimits();
 				break;
@@ -1102,6 +1117,9 @@ function formatTime(ts: number) {
 					</TabsTrigger>
 					<TabsTrigger value="collaborators" class="text-xs">
 						<Icon icon="mdi:account-group-outline" class="size-3.5 mr-1" />协作者
+				</TabsTrigger>
+				<TabsTrigger value="credits" class="text-xs">
+					<Icon icon="mdi:wallet-outline" class="size-3.5 mr-1" />额度
 				</TabsTrigger>
 				<TabsTrigger value="limits" class="text-xs">
 					<Icon icon="mdi:tune-vertical" class="size-3.5 mr-1" />配置
@@ -1540,6 +1558,46 @@ function formatTime(ts: number) {
 			</TabsContent>
 
 			<!-- Limits -->
+			<TabsContent value="credits" class="mt-4">
+				<Card>
+					<CardHeader>
+						<CardTitle class="text-base">额度管理</CardTitle>
+						<CardDescription>查看和修改用户生图点数余额</CardDescription>
+					</CardHeader>
+					<CardContent class="space-y-4">
+						<Button size="sm" onclick={loadCredits} disabled={loading}>刷新</Button>
+						{#if wallets.length > 0}
+							<div class="space-y-2">
+								{#each wallets as w}
+									<div class="flex items-center gap-2 text-xs border rounded-lg px-3 py-2">
+										<span class="font-medium w-16">UID {w.user_id}</span>
+										<input type="number" bind:value={w._edit ?? w.balance} class="w-24 h-7 px-2 rounded border bg-transparent text-xs" />
+										<Button size="sm" variant="outline" class="h-7 text-xs" onclick={() => admin.setWalletBalance(w.user_id, Number(w._edit ?? w.balance))}>保存</Button>
+									</div>
+								{/each}
+							</div>
+						{:else}
+							<p class="text-xs text-muted-foreground py-4 text-center">暂无数据</p>
+						{/if}
+						<div class="border-t pt-3">
+							<p class="text-xs font-medium mb-2">充值计划</p>
+							{#each plans as plan}
+								<div class="flex items-center gap-2 text-xs border rounded-lg px-3 py-2 mb-1">
+									<input bind:value={plan._name ?? plan.name} class="w-24 h-7 px-2 rounded border bg-transparent text-xs" placeholder="名称" />
+									<input bind:value={plan._points ?? plan.points} type="number" class="w-16 h-7 px-2 rounded border bg-transparent text-xs" placeholder="点数" />
+									<input bind:value={plan._price ?? plan.price} type="number" step="0.01" class="w-16 h-7 px-2 rounded border bg-transparent text-xs" placeholder="价格" />
+									<input bind:value={plan._plan_id ?? plan.plan_id} class="w-24 h-7 px-2 rounded border bg-transparent text-xs truncate" placeholder="plan_id" />
+									<input bind:value={plan._sku_id ?? plan.sku_id} class="w-24 h-7 px-2 rounded border bg-transparent text-xs truncate" placeholder="sku_id" />
+									<Button size="sm" variant="outline" class="h-7 text-xs" onclick={() => admin.savePlan({ id: plan.id, name: plan._name ?? plan.name, points: Number(plan._points ?? plan.points), price: Number(plan._price ?? plan.price), plan_id: plan._plan_id ?? plan.plan_id, sku_id: plan._sku_id ?? plan.sku_id })}>保存</Button>
+									<Button size="sm" variant="destructive" class="h-7 text-xs" onclick={() => admin.deletePlan(plan.id).then(loadCredits)}>删除</Button>
+								</div>
+							{/each}
+							<Button size="sm" variant="ghost" class="text-xs mt-1" onclick={() => { plans = [...plans, { id: 'new_' + Date.now(), name: '', points: 0, price: 0, plan_id: '', sku_id: '', _name: '', _points: 0, _price: 0, _plan_id: '', _sku_id: '' }]; }}>+ 新增计划</Button>
+						</div>
+					</CardContent>
+				</Card>
+			</TabsContent>
+
 			<TabsContent value="limits" class="mt-4">
 				<Card>
 					<CardHeader>
