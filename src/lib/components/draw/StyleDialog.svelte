@@ -31,6 +31,7 @@
 				<Icon icon="mdi:palette-outline" class="size-4" />
 				{#if value}
 					<span class="truncate">{name || value}</span>
+					<button onclick={(e) => { e.stopPropagation(); onselect?.('', ''); }} class="size-5 flex items-center justify-center rounded text-muted-foreground hover:text-red-500 transition-colors shrink-0" title="清除风格"><Icon icon="mdi:close" class="size-3.5" /></button>
 				{:else}
 					<span class="text-muted-foreground">选择风格</span>
 				{/if}
