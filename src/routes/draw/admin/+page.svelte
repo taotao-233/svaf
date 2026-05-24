@@ -1396,7 +1396,19 @@ function formatTime(ts: number) {
 							{/if}
 							<Button size="sm" variant="outline" class="h-7 text-xs" onclick={handleGivePoints} disabled={!givePointsValue || givePointsValue <= 0}>赠送</Button>
 						</div>
-						<div class="flex items-center gap-2 text-xs border-t pt-3">
+						<div class="border-t pt-3 space-y-2">
+							<p class="text-xs font-medium">生图点排行（前 10）</p>
+							{#each [...wallets].sort((a, b) => b.balance - a.balance).slice(0, 10) as w, i}
+								<div class="flex items-center gap-2 text-xs border rounded-lg px-3 py-2">
+									<span class="text-muted-foreground w-5 shrink-0 text-center">{i + 1}</span>
+									<span class="font-medium w-16">UID {w.user_id}</span>
+									<span class="flex-1">⚡{w.balance}</span>
+									<input type="number" bind:value={w._edit} class="w-20 h-7 px-2 rounded border bg-transparent text-xs" />
+									<Button size="sm" variant="outline" class="h-7 text-xs" onclick={() => admin.setWalletBalance(w.user_id, Number(w._edit)).then(() => loadCredits())}>保存</Button>
+								</div>
+							{/each}
+						</div>
+						<div class="flex items-center gap-2 text-xs pt-2">
 							<span class="font-medium">搜索 UID</span>
 							<input type="number" bind:value={searchUid} class="w-24 h-7 px-2 rounded border bg-transparent text-xs" placeholder="输入 UID" onkeydown={(e) => { if (e.key === 'Enter') searchUidByWallet(); }} />
 							<Button size="sm" variant="outline" class="h-7 text-xs" onclick={searchUidByWallet}>搜索</Button>
