@@ -129,7 +129,7 @@
 			if (!el) return;
 			const rect = el.getBoundingClientRect();
 			if (rect.top < 56 || rect.top > window.innerHeight) {
-				el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+				el.scrollIntoView({ behavior: 'instant', block: 'start' });
 			}
 			clearInterval(poll);
 		}, 100);
