@@ -19,8 +19,8 @@
 	let open = $state(false);
 
 	function handleSelect(tags: string, name: string) {
-		onselect?.(tags, name);
 		open = false;
+		onselect?.(tags, name);
 	}
 </script>
 

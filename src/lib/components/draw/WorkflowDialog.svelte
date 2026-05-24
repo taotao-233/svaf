@@ -20,8 +20,8 @@
 	let open = $state(false);
 
 	function handleSelect(wf: DrawWorkflow) {
-		onselect?.(wf);
 		open = false;
+		onselect?.(wf);
 	}
 
 	function handlePromptLoad(positive: string, negative: string) {
