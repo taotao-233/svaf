@@ -1748,27 +1748,17 @@ function formatTime(ts: number) {
 							</div>
 							{/if}
 
-							{#if debugData.queue_users.length > 0}
-								<div>
-									<h4 class="text-sm font-medium mb-2">队列中的用户</h4>
-									<div class="flex flex-wrap gap-2">
-										{#each debugData.queue_users as [uid, count]}
-											<Badge variant="secondary" class="text-xs">
-												UID {uid} x {count}
-											</Badge>
-										{/each}
-									</div>
+							<div>
+								<span class="text-xs text-muted-foreground">队列中用户数: {debugData.queue_users_count ?? '?'}</span>
 							</div>
-							{/if}
 
-							{#if debugData.stuck.length > 0}
+							{#if debugData.stuck?.length > 0}
 								<div>
 									<h4 class="text-sm font-medium mb-2 text-red-500">卡住任务 ({debugData.stuck.length})</h4>
 									<div class="space-y-1">
 										{#each debugData.stuck as item}
 											<div class="flex items-center gap-2 text-xs border rounded px-3 py-2">
 												<Icon icon="mdi:alert" class="size-4 text-red-500" />
-												<span>UID {item.user_id}</span>
 												<Badge variant="destructive" class="text-[10px]">{item.status}</Badge>
 												<span class="text-muted-foreground">ID:{item.id}</span>
 											</div>
@@ -1778,39 +1768,10 @@ function formatTime(ts: number) {
 							{/if}
 
 							<div>
-								<h4 class="text-sm font-medium mb-2">最近 20 条队列项</h4>
-								<div class="overflow-x-auto">
-									<table class="w-full text-xs">
-										<thead>
-											<tr class="border-b text-left text-muted-foreground">
-												<th class="py-1 pr-2">ID</th>
-												<th class="py-1 pr-2">UID</th>
-												<th class="py-1 pr-2">类型</th>
-												<th class="py-1 pr-2">状态</th>
-												<th class="py-1 pr-2">创建</th>
-												<th class="py-1 pr-2">启动</th>
-													<th class="py-1 pr-2">工作流</th>
-													<th class="py-1 pr-2">错误</th>
-														<th class="py-1 pr-2">元数据</th>
-											</tr>
-										</thead>
-										<tbody>
-											{#each debugData.recent_items_full as item}
-												<tr class="border-b">
-													<td class="py-1 pr-2 font-mono">{item.id}</td>
-													<td class="py-1 pr-2">{item.user_id}</td>
-													<td class="py-1 pr-2 text-xs">{item.type === 'img2img' ? '🖼️' : '📝'}</td>
-													<td class="py-1 pr-2">
-														<Badge variant={item.status === 'failed' ? 'destructive' : item.status === 'done' ? 'default' : item.status === 'running' ? 'default' : 'secondary'} class="text-[10px]">{item.status}</Badge>
-													</td>
-													<td class="py-1 pr-2 text-muted-foreground">{item.created_ago}s前</td>
-													<td class="py-1 pr-2 text-muted-foreground">{item.started_ago != null ? `${item.started_ago}s前` : '-'}</td>
-														<td class="py-1 pr-2 break-all max-w-[120px] text-muted-foreground text-[10px]">{item.workflow_path || '-'}</td>
-														<td class="py-1 pr-2 break-all max-w-xs text-destructive text-[10px]" title={item.error || ''}>{item.error || '-'}</td>
-														<td class="py-1 pr-2 break-all max-w-[120px] text-muted-foreground text-[10px]">{item.meta_write ? `正向:${item.meta_write.prompt} 反向:${item.meta_write.negative} 原图1:${item.meta_write.image1} 原图2:${item.meta_write.image2}` : '-'}</td>
-												</tr>
-											{/each}
-										</tbody>
+								<h4 class="text-sm font-medium mb-2">队列摘要</h4>
+								<div class="text-xs text-muted-foreground">
+									<div>队列项目总数: {debugData.recent_items_count ?? '?'}</div>
+								</div>
 									</table>
 								</div>
 							</div>
