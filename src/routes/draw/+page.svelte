@@ -9,7 +9,7 @@
 	import { forumAuth } from '$lib/forum/stores/auth';
 	import { drawEnv, apiError, apiStatus, resolveApiRedirect } from '$lib/draw/stores/env';
 	import { connectStatusWs } from '$lib/draw/api/ws';
-	import { fetchMyImages, getImageUrl, getImageProxyUrl, forkOutputImage, recommendImage, deleteMyImage, fetchMyRecommendations, addToQueue, fetchMyQueue, fetchWalletBalance, createWalletOrder, fetchPlans, fetchPointsConfig, fetchWorkflowDetail, fetchAnnouncement } from '$lib/draw/api/client';
+	import { fetchMyImages, getImageUrl, getImageProxyUrl, forkOutputImage, recommendImage, deleteMyImage, fetchMyRecommendations, addToQueue, fetchMyQueue, fetchWalletBalance, createWalletOrder, fetchPlans, fetchPointsConfig, fetchWorkflowDetail, fetchAnnouncement, fetchStyles } from '$lib/draw/api/client';
 	import { consumeFork } from '$lib/draw/stores/fork';
 	import { onMount, onDestroy } from 'svelte';
 	import type { WsStatusEvent, DrawWorkflow, DrawRecommendation } from '$lib/draw/types';
@@ -349,12 +349,23 @@
 			if (res.workflow_path && res.workflow_path !== 'fork') workflowPath = res.workflow_path;
 			if (res.workflow_name) workflowName = res.workflow_name;
 			else workflowName = workflowPath ? workflowPath.split('/').pop()?.replace(/\.(json|txt)$/, '') || '(fork)' : '(fork)';
+			// Try to detect style from builtin_prompt or style_tags
+			styleTags = '';
+			styleName = '';
 			if (res.style_tags) {
 				styleTags = res.style_tags;
 				styleName = res.style_tags;
-			} else {
-				styleTags = '';
-				styleName = '';
+			} else if (res.builtin_prompt) {
+				const firstTag = res.builtin_prompt.split(',')[0].trim();
+				const cleaned = firstTag.replace(/^by\s+/i, '').replace(/^@/, '');
+				if (cleaned !== firstTag) {
+					const allStyles = await fetchStyles();
+					const match = allStyles.styles.find(s => s.tags.toLowerCase() === cleaned.toLowerCase());
+					if (match) {
+						styleTags = firstTag;
+						styleName = match.name || match.tags;
+					}
+				}
 			}
 			localStorage.setItem('draw-fork-pending', JSON.stringify({ workflow_api: null, builtin_prompt: res.builtin_prompt || '', builtin_negative_prompt: res.builtin_negative_prompt || '', default_width: res.default_width || null, default_height: res.default_height || null, seed: res.seed, style_tags: res.style_tags || '', workflow_path: res.workflow_path || '', workflow_name: res.workflow_name || '' }));
 			forkMessage = 'Fork 成功';
