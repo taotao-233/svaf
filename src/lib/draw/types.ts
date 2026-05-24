@@ -34,20 +34,9 @@ export interface DrawWorkflowsResponse {
 }
 
 export interface DrawWorkflowDetail {
-	path: string;
-	summary: {
-		node_count: number;
-		link_count: number;
-		group_count: number;
-		types: Record<string, number>;
-	};
-	thumbnail: boolean;
-	default_width: number;
-	default_height: number;
 	builtin_prompt: string;
 	builtin_negative_prompt: string;
-	loras: string[];
-	lora_link?: string;
+	[key: string]: any;
 }
 
 export interface DrawStyle {

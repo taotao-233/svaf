@@ -153,47 +153,6 @@ export async function runGc() {
 
 // --- Styles ---
 
-// --- Workflows ---
-
-export async function getWorkflowFiles() {
-	return drawRequest<{ files: string[] }>('/api/draw/admin/workflow_files');
-}
-
-export async function renameWorkflow(oldName: string, newName: string) {
-	return drawRequest<{ ok: boolean }>('/api/draw/admin/workflow_rename', {
-		method: 'POST',
-		json: { old: oldName, new: newName }
-	});
-}
-
-export async function getWorkflowMeta() {
-	return drawRequest<{ workflow_meta: { workflow: string; thumbnail?: string; lora_link?: string; category?: string }[] }>('/api/draw/admin/workflow_meta');
-}
-
-	export async function updateWorkflowMeta(meta: { workflow: string; thumbnail?: string; lora_link?: string; category?: string }[]) {
-		return drawRequest<{ ok: boolean; workflow_meta: { workflow: string; thumbnail?: string; lora_link?: string; category?: string }[] }>('/api/draw/admin/workflow_meta', {
-			method: 'POST',
-			json: { workflow_meta: meta }
-		});
-	}
-
-	export async function saveWorkflowMetaSingle(path: string, fields: { thumbnail?: string; category?: string; lora_link?: string }) {
-		const fullPath = path.startsWith('WAI/') ? path : 'WAI/' + path;
-		const cur = await getWorkflowMeta();
-		const meta = cur.workflow_meta.filter(m => m.workflow !== fullPath);
-		const existing = cur.workflow_meta.find(m => m.workflow === fullPath);
-		meta.push({ workflow: fullPath, ...existing, ...fields });
-		return updateWorkflowMeta(meta);
-	}
-
-export async function uploadWfThumbnail(file: File) {
-	const form = new FormData();
-	form.append('file', file);
-	return drawRequest<{ ok: boolean; filename: string }>('/api/draw/admin/wf_thumbnail', {
-		method: 'POST',
-		body: form
-	});
-}
 
 // --- LLM Config ---
 
