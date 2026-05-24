@@ -9,12 +9,12 @@
 	import { forumAuth } from '$lib/forum/stores/auth';
 	import { drawEnv, apiError, apiStatus, resolveApiRedirect } from '$lib/draw/stores/env';
 	import { connectStatusWs } from '$lib/draw/api/ws';
-	import { fetchMyImages, getImageUrl, getImageProxyUrl, forkOutputImage, recommendImage, deleteMyImage, fetchMyRecommendations, addToQueue, fetchMyQueue, fetchWalletBalance, createWalletOrder, fetchPlans, fetchPointsConfig, fetchWorkflowDetail } from '$lib/draw/api/client';
+	import { fetchMyImages, getImageUrl, getImageProxyUrl, forkOutputImage, recommendImage, deleteMyImage, fetchMyRecommendations, addToQueue, fetchMyQueue, fetchWalletBalance, createWalletOrder, fetchPlans, fetchPointsConfig, fetchWorkflowDetail, fetchAnnouncement } from '$lib/draw/api/client';
 	import { consumeFork } from '$lib/draw/stores/fork';
 	import { onMount, onDestroy } from 'svelte';
 	import type { WsStatusEvent, DrawWorkflow, DrawRecommendation } from '$lib/draw/types';
-	const ANNOUNCEMENT_TEXT = '';
-
+	let announcementText = $state('');
+	let announcementTitle = $state('');
 	let announcementOpen = $state(false);
 
 	import PageViews from '$lib/components/PageViews.svelte';
@@ -632,9 +632,15 @@ async function startGeneration(mode = 'wai') {
 			io.observe(sentinelEl);
 		}
 		window.addEventListener('resize', handleResize, { passive: true });
-		if (ANNOUNCEMENT_TEXT && typeof sessionStorage !== 'undefined' && !sessionStorage.getItem('draw-announcement-dismissed')) {
-			announcementOpen = true;
-		}
+		fetchAnnouncement().then(r => {
+			if (r.announcement?.enabled && r.announcement.content) {
+				announcementText = r.announcement.content;
+				announcementTitle = r.announcement.title || '公告';
+				if (typeof sessionStorage !== 'undefined' && !sessionStorage.getItem('draw-announcement-dismissed')) {
+					announcementOpen = true;
+				}
+			}
+		}).catch(() => {});
 	});
 
 	onDestroy(() => {
@@ -1024,9 +1030,9 @@ async function startGeneration(mode = 'wai') {
 <Dialog.Root open={announcementOpen} onOpenChange={(o) => { if (!o) { announcementOpen = false; try { sessionStorage.setItem('draw-announcement-dismissed', '1'); } catch {} } }}>
 	<Dialog.Content class="max-w-md">
 		<Dialog.Header>
-			<Dialog.Title>📢 公告</Dialog.Title>
+			<Dialog.Title>📢 {announcementTitle}</Dialog.Title>
 			<Dialog.Description class="text-sm leading-relaxed">
-				{@html ANNOUNCEMENT_TEXT.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-primary underline">$1</a>')}
+				{@html announcementText.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-primary underline">$1</a>')}
 			</Dialog.Description>
 		</Dialog.Header>
 	</Dialog.Content>

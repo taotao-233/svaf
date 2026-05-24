@@ -248,6 +248,10 @@ async function fetchPublic<T>(path: string): Promise<T> {
 	return resp.json();
 }
 
+export async function fetchAnnouncement() {
+	return fetchPublic<{ announcement: { enabled: boolean; title: string; content: string } | null }>('/api/announcement');
+}
+
 export async function fetchPlans() {
 	return fetchPublic<{ items: Array<{ id: string; name: string; url: string; points: number }> }>('/api/wallet/plans');
 }
