@@ -305,12 +305,13 @@
 		styleName = name;
 	}
 
-	function handlePromptLoad(positive: string, negative: string, workflowApi?: Record<string, any>) {
+	function handlePromptLoad(positive: string, negative: string, workflowApi?: Record<string, any>, wfPath?: string) {
 			directPrompt = positive;
 			negativePrompt = negative;
 			workflowPrompt = positive;
 			workflowNegativePrompt = negative;
 			if (workflowApi) inlineWorkflowApi = workflowApi;
+			if (wfPath) { workflowPath = wfPath; workflowName = wfPath.split('/').pop()?.replace(/\.(json|txt)$/, '') || ''; }
 			localStorage.setItem('wf_prompt', positive);
 			localStorage.setItem('wf_neg_prompt', negative);
 		}

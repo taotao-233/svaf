@@ -16,7 +16,7 @@
 	}: {
 		value?: string;
 		onselect?: (wf: DrawWorkflow) => void;
-		onpromptload?: (positive: string, negative: string, workflowApi?: Record<string, any>) => void;
+		onpromptload?: (positive: string, negative: string, workflowApi?: Record<string, any>, wfPath?: string) => void;
 		showTitle?: boolean;
 		constrainHeight?: boolean;
 		subdir?: string;
@@ -64,7 +64,7 @@
 				const wf = workflows.find(w => w.path === value);
 				if (wf) { expandedCategories.add(wf.category); expandedCategories = new Set(expandedCategories); }
 				fetchWorkflowDetail(value, undefined, subdir).then((detail: any) => {
-					onpromptload?.(detail.builtin_prompt, detail.builtin_negative_prompt, detail.workflow_api);
+					onpromptload?.(detail.builtin_prompt, detail.builtin_negative_prompt, detail.workflow_api, detail.workflow_path);
 				}).catch(() => {});
 			}
 		});
@@ -90,10 +90,10 @@
 		abortCtrl = new AbortController();
 		loadingPath = wf.path;
 
-		fetchWorkflowDetail(wf.path, abortCtrl.signal, subdir)
+				fetchWorkflowDetail(wf.path, abortCtrl.signal, subdir)
 			.then((detail: any) => {
 				if (!abortCtrl?.signal.aborted) {
-					onpromptload?.(detail.builtin_prompt, detail.builtin_negative_prompt, detail.workflow_api);
+					onpromptload?.(detail.builtin_prompt, detail.builtin_negative_prompt, detail.workflow_api, detail.workflow_path);
 					loadingPath = '';
 				}
 			})
