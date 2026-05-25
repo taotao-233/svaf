@@ -356,6 +356,8 @@
 									<img
 										src={post.metadata.image}
 										alt={post.metadata.title}
+										loading="lazy"
+										decoding="async"
 										class="h-48 w-full rounded-md object-cover md:h-32"
 									/>
 								</div>
