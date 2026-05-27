@@ -22,7 +22,7 @@
 	let navigating = $state(false);
 
 	beforeNavigate(() => { navigating = true; });
-	afterNavigate(() => { navigating = false; });
+	afterNavigate(() => { setTimeout(() => { navigating = false; }, 300); });
 </script>
 
 <svelte:head>
@@ -51,17 +51,14 @@
 
 <NavBar />
 
-{#if navigating}
-	<div class="fixed top-0 left-0 z-50 h-0.5 bg-primary" style="width:30%; animation: nav-load 600ms ease-out forwards;" />
-{/if}
+<div
+	class="fixed top-0 left-0 z-50 h-0.5 bg-primary transition-all duration-75"
+	class:opacity-0={!navigating}
+	class:opacity-100={navigating}
+	style="width: {navigating ? '60%' : '0%'};"
+/>
 
 <style>
-	@keyframes nav-load {
-		0% { width: 0%; left: 0; }
-		30% { width: 30%; left: 0; }
-		60% { width: 60%; left: 10%; }
-		100% { width: 80%; left: 20%; }
-	}
 </style>
 
 <div class={isHomePage ? '' : 'pt-14'}>
