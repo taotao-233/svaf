@@ -2,6 +2,7 @@
 	import { tick } from 'svelte';
 	import { fly } from 'svelte/transition';
 	import { tocFloating } from '$lib/stores/toc-floating';
+	import { NAV_HEIGHT } from '$lib/constants';
 
 	let {
 		container,
@@ -81,14 +82,14 @@
 				}
 			},
 			// 顶部 80px 偏移、底部留 60% 视窗，避免一次高亮多个
-			{ rootMargin: '-80px 0px -60% 0px', threshold: 0 }
+			{ rootMargin: `${-(NAV_HEIGHT + 24)}px 0px -60% 0px`, threshold: 0 }
 		);
 		for (const el of els) observer.observe(el);
 
 		// 初始化 activeId 为视窗内最靠上的标题
 		const firstVisible = els.find((el) => {
 			const r = el.getBoundingClientRect();
-			return r.bottom > 80;
+			return r.bottom > NAV_HEIGHT + 24;
 		});
 		activeId = (firstVisible || els[0]).id;
 	}
@@ -108,7 +109,7 @@
 		if (!el) return;
 		e.preventDefault();
 		activeId = id;
-		const top = el.getBoundingClientRect().top + window.scrollY - 72;
+		const top = el.getBoundingClientRect().top + window.scrollY - (NAV_HEIGHT + 16);
 		window.scrollTo({ top, behavior: 'instant' });
 		history.replaceState(null, '', `#${id}`);
 		tocFloating.setOpen(false);

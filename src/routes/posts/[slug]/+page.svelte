@@ -8,6 +8,7 @@
 	import Giscus from '$lib/components/Giscus.svelte';
 	import PageViews from '$lib/components/PageViews.svelte';
 	import PostToc from '$lib/components/PostToc.svelte';
+	import { NAV_HEIGHT } from '$lib/constants';
 	import { highlightCodeBlocksIn, switchHighlightTheme } from '$lib/utils/highlight';
 	import { renderMermaidIn, rerenderAllMermaid } from '$lib/utils/mermaid';
 	import { isDark } from '$lib/stores/theme';
@@ -128,7 +129,7 @@
 			const el = document.getElementById(id);
 			if (!el) return;
 			const rect = el.getBoundingClientRect();
-			if (rect.top < 56 || rect.top > window.innerHeight) {
+			if (rect.top < NAV_HEIGHT || rect.top > window.innerHeight) {
 				el.scrollIntoView({ behavior: 'instant', block: 'start' });
 			}
 			clearInterval(poll);

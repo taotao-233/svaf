@@ -55,7 +55,9 @@
 
 <NavBar />
 
-{@render children()}
+<div class={isHomePage ? '' : 'pt-14'}>
+	{@render children()}
+</div>
 
 <Footer />
 
