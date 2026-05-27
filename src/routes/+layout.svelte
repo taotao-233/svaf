@@ -20,9 +20,27 @@
 	let isHomePage = $derived($page.route.id === '/');
 
 	let navigating = $state(false);
+	let barWidth = $state(0);
+	let rafId = $state(0);
 
-	beforeNavigate(() => { navigating = true; });
-	afterNavigate(() => { setTimeout(() => { navigating = false; }, 500); });
+	beforeNavigate(() => {
+		navigating = true;
+		barWidth = 0;
+		cancelAnimationFrame(rafId);
+		const start = performance.now();
+		function tick() {
+			const elapsed = performance.now() - start;
+			const pct = 1 - Math.exp(-elapsed / 400);
+			barWidth = Math.min(pct * 100, 99);
+			if (navigating) rafId = requestAnimationFrame(tick);
+		}
+		rafId = requestAnimationFrame(tick);
+	});
+	afterNavigate(() => {
+		cancelAnimationFrame(rafId);
+		barWidth = 100;
+		setTimeout(() => { navigating = false; barWidth = 0; }, 200);
+	});
 </script>
 
 <svelte:head>
@@ -52,10 +70,10 @@
 <NavBar />
 
 <div
-	class="fixed top-0 left-0 z-50 h-0.5 bg-primary transition-all duration-300 ease-out"
+	class="fixed top-0 left-0 z-50 h-0.5 bg-primary transition-opacity duration-200"
 	class:opacity-0={!navigating}
 	class:opacity-100={navigating}
-	style="width: {navigating ? '95%' : '0%'};"
+	style="width: {barWidth}%;"
 />
 
 <style>
