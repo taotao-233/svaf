@@ -1,7 +1,8 @@
 <script lang="ts">
 	import '../app.css';
+	import '../app.css';
 	import { page } from '$app/stores';
-	import { onNavigate } from '$app/navigation';
+	import { beforeNavigate, afterNavigate } from '$app/navigation';
 	import { siteConfig } from '$lib/config/site';
 	import BackToTop from '$lib/components/BackToTop.svelte';
 	import NavBar from '$lib/components/NavBar.svelte';
@@ -18,16 +19,10 @@
 	let isPostDetail = $derived(/^\/posts\/[^/]+\/?$/.test($page.url.pathname));
 	let isHomePage = $derived($page.route.id === '/');
 
-	onNavigate((navigation) => {
-		if (!document.startViewTransition) return;
+	let navigating = $state(false);
 
-		return new Promise((resolve) => {
-			document.startViewTransition(async () => {
-				resolve();
-				await navigation.complete;
-			});
-		});
-	});
+	beforeNavigate(() => { navigating = true; });
+	afterNavigate(() => { navigating = false; });
 </script>
 
 <svelte:head>
@@ -55,6 +50,10 @@
 </svelte:head>
 
 <NavBar />
+
+{#if navigating}
+	<div class="fixed top-0 left-0 right-0 z-50 h-0.5 bg-primary animate-pulse" />
+{/if}
 
 <div class={isHomePage ? '' : 'pt-14'}>
 	{@render children()}
