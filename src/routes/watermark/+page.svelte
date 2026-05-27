@@ -4,6 +4,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Card, CardContent } from '$lib/components/ui/card';
+	import * as Select from '$lib/components/ui/select';
 
 	let imageSrc = $state<string | null>(null);
 	let imageLoaded = $state<HTMLImageElement | null>(null);
@@ -11,6 +12,7 @@
 	let fontSize = $state(48);
 	let opacity = $state(30);
 	let position = $state('右下');
+	let mode = $state('single');
 	let processedUrl = $state<string | null>(null);
 
 	function handleFile(e: Event) {
@@ -41,14 +43,26 @@
 
 		const textWidth = ctx.measureText(text).width;
 		const padding = 20;
-		let x: number, y: number;
-		switch (position) {
-			case '左上': x = padding; y = fontSize + padding; break;
-			case '右上': x = canvas.width - textWidth - padding; y = fontSize + padding; break;
-			case '左下': x = padding; y = canvas.height - padding; break;
-			default: x = canvas.width - textWidth - padding; y = canvas.height - padding;
+
+		if (mode === 'tile') {
+			const spacingX = textWidth + 60;
+			const spacingY = fontSize + 60;
+			for (let y = padding; y < canvas.height; y += spacingY) {
+				for (let x = padding; x < canvas.width; x += spacingX) {
+					ctx.globalAlpha = opacity / 100 * 0.5;
+					ctx.fillText(text, x, y);
+				}
+			}
+		} else {
+			let x: number, y: number;
+			switch (position) {
+				case '左上': x = padding; y = fontSize + padding; break;
+				case '右上': x = canvas.width - textWidth - padding; y = fontSize + padding; break;
+				case '左下': x = padding; y = canvas.height - padding; break;
+				default: x = canvas.width - textWidth - padding; y = canvas.height - padding;
+			}
+			ctx.fillText(text, x, y);
 		}
-		ctx.fillText(text, x, y);
 
 		processedUrl = canvas.toDataURL('image/png');
 	});
@@ -80,6 +94,19 @@
 				<Input bind:value={watermarkText} placeholder="2x.nz" />
 			</div>
 
+			<div class="space-y-1.5">
+				<Label class="text-xs">类型</Label>
+				<Select.Root bind:value={mode}>
+					<Select.Trigger class="w-full">
+						{mode === 'single' ? '单个水印' : '全屏平铺'}
+					</Select.Trigger>
+					<Select.Content>
+						<Select.Item value="single" label="单个水印" />
+						<Select.Item value="tile" label="全屏平铺" />
+					</Select.Content>
+				</Select.Root>
+			</div>
+
 			<div class="grid grid-cols-3 gap-3">
 				<div class="space-y-1.5">
 					<Label class="text-xs">字体大小</Label>
@@ -89,15 +116,22 @@
 					<Label class="text-xs">透明度 (%)</Label>
 					<Input type="number" bind:value={opacity} min="5" max="100" />
 				</div>
-				<div class="space-y-1.5">
-					<Label class="text-xs">位置</Label>
-					<select bind:value={position} class="w-full h-9 rounded-md border border-input bg-background px-3 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-						<option>左上</option>
-						<option>右上</option>
-						<option>左下</option>
-						<option>右下</option>
-					</select>
-				</div>
+				{#if mode === 'single'}
+					<div class="space-y-1.5">
+						<Label class="text-xs">位置</Label>
+						<Select.Root bind:value={position}>
+							<Select.Trigger class="w-full">
+								{position}
+							</Select.Trigger>
+							<Select.Content>
+								<Select.Item value="左上" label="左上" />
+								<Select.Item value="右上" label="右上" />
+								<Select.Item value="左下" label="左下" />
+								<Select.Item value="右下" label="右下" />
+							</Select.Content>
+						</Select.Root>
+					</div>
+				{/if}
 			</div>
 		</CardContent>
 	</Card>
