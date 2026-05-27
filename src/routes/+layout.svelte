@@ -16,6 +16,7 @@
 
 	// 文章详情页自己输出 og:image / twitter:image / og:title 等，避免重复
 	let isPostDetail = $derived(/^\/posts\/[^/]+\/?$/.test($page.url.pathname));
+	let isHomePage = $derived($page.route.id === '/');
 
 	onNavigate((navigation) => {
 		if (!document.startViewTransition) return;
