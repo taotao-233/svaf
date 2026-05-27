@@ -14,15 +14,17 @@
 
 	let showBanner = $state(false);
 	let showSettings = $state(false);
-	
+
 	let preferences = $state<ConsentPreferences>({
 		necessary: true,
 		functional: false,
 		analytics: false
 	});
 
+	let agreed = $state(false);
+
 	const STORAGE_KEY = 'cookie-consent-preferences';
-	const CONSENT_VERSION = '1.0';
+	const CONSENT_VERSION = '2.0';
 
 	onMount(() => {
 		loadPreferences();
@@ -46,8 +48,9 @@
 			const stored = localStorage.getItem(STORAGE_KEY);
 			if (stored) {
 				const data = JSON.parse(stored);
-				if (data.version === CONSENT_VERSION) {
+				if (data.version === CONSENT_VERSION && data.agreed) {
 					preferences = data.preferences;
+					agreed = true;
 					applyConsent();
 					return;
 				}
@@ -55,20 +58,26 @@
 		} catch (e) {
 			console.error('Failed to load cookie preferences:', e);
 		}
-		
-		// 如果没有保存的偏好，显示横幅
+
 		showBanner = true;
 	}
 
-	function savePreferences() {
+	function savePreferences(close = true) {
 		try {
 			localStorage.setItem(STORAGE_KEY, JSON.stringify({
 				version: CONSENT_VERSION,
 				preferences,
+				agreed: true,
 				timestamp: Date.now()
 			}));
+			agreed = true;
 		} catch (e) {
 			console.error('Failed to save cookie preferences:', e);
+		}
+		if (close) {
+			applyConsent();
+			showBanner = false;
+			showSettings = false;
 		}
 	}
 
@@ -79,9 +88,6 @@
 			analytics: true
 		};
 		savePreferences();
-		applyConsent();
-		showBanner = false;
-		showSettings = false;
 	}
 
 	function acceptNecessary() {
@@ -91,21 +97,14 @@
 			analytics: false
 		};
 		savePreferences();
-		applyConsent();
-		showBanner = false;
-		showSettings = false;
 	}
 
 	function saveCustomPreferences() {
-		preferences.necessary = true; // 必要 Cookie 始终启用
+		preferences.necessary = true;
 		savePreferences();
-		applyConsent();
-		showBanner = false;
-		showSettings = false;
 	}
 
 	function applyConsent() {
-		// 触发自定义事件，通知 Analytics 组件
 		window.dispatchEvent(new CustomEvent('cookie-consent-updated', {
 			detail: preferences
 		}));
@@ -120,7 +119,7 @@
 				<CardHeader>
 					<CardTitle class="flex items-center gap-2">
 						<Icon icon="mdi:cookie" class="h-5 w-5" />
-						Cookie 使用说明
+						隐私与协议
 					</CardTitle>
 					<CardDescription>
 						我们使用 Cookie 来改善您的浏览体验、提供个性化内容和分析网站流量。
@@ -130,18 +129,25 @@
 					<div class="space-y-4">
 						<p class="text-sm text-muted-foreground">
 							点击"接受全部"即表示您同意我们使用所有 Cookie。您也可以点击"自定义设置"来选择您希望启用的 Cookie 类型。
-							查看我们的 <a href="/posts/privacy-policy/" class="text-primary underline">隐私政策</a> 了解更多信息。
 						</p>
-						
+
+						<label class="flex items-start gap-3 p-3 rounded-lg border bg-muted/30 cursor-pointer">
+							<Checkbox bind:checked={agreed} class="mt-0.5" />
+							<div class="text-sm">
+								我已阅读并同意 <a href="/posts/draw-user-agreement/" target="_blank" class="text-primary underline">《用户协议》</a>
+								和 <a href="/posts/privacy-policy/" target="_blank" class="text-primary underline">《隐私政策》</a>
+							</div>
+						</label>
+
 						<div class="flex flex-wrap gap-3">
-							<Button onclick={acceptAll}>
+							<Button onclick={acceptAll} disabled={!agreed}>
 								<Icon icon="mdi:check-all" class="mr-2 h-4 w-4" />
 								接受全部
 							</Button>
-							<Button variant="outline" onclick={acceptNecessary}>
+							<Button variant="outline" onclick={acceptNecessary} disabled={!agreed}>
 								仅必要 Cookie
 							</Button>
-							<Button variant="outline" onclick={() => showSettings = true}>
+							<Button variant="outline" onclick={() => showSettings = true} disabled={!agreed}>
 								<Icon icon="mdi:cog" class="mr-2 h-4 w-4" />
 								自定义设置
 							</Button>
@@ -157,14 +163,21 @@
 <Dialog.Root bind:open={showSettings}>
 	<Dialog.Content class="max-w-2xl max-h-[90vh] overflow-y-auto">
 		<Dialog.Header>
-			<Dialog.Title>Cookie 偏好设置</Dialog.Title>
+			<Dialog.Title>隐私与协议设置</Dialog.Title>
 			<Dialog.Description>
-				选择您希望启用的 Cookie 类型。必要 Cookie 无法禁用，因为它们对网站的正常运行至关重要。
-				查看我们的 <a href="/posts/privacy-policy/" class="text-primary underline">隐私政策</a> 了解更多信息。
+				请阅读并同意用户协议与隐私政策，并选择您希望启用的 Cookie 类型。必要 Cookie 无法禁用。
 			</Dialog.Description>
 		</Dialog.Header>
-		
+
 		<div class="space-y-6 py-4">
+			<label class="flex items-start gap-3 p-3 rounded-lg border bg-muted/30 cursor-pointer">
+				<Checkbox bind:checked={agreed} class="mt-0.5" />
+				<div class="text-sm">
+					我已阅读并同意 <a href="/posts/draw-user-agreement/" target="_blank" class="text-primary underline">《用户协议》</a>
+					和 <a href="/posts/privacy-policy/" target="_blank" class="text-primary underline">《隐私政策》</a>
+				</div>
+			</label>
+
 			<!-- 必要 Cookie -->
 			<div class="space-y-3">
 				<div class="flex items-start gap-3">
@@ -177,7 +190,6 @@
 						<ul class="text-sm text-muted-foreground space-y-1 list-disc list-inside">
 							<li>Umami Analytics - 网站统计</li>
 							<li>Cloudflare Insights - 性能监控</li>
-
 						</ul>
 					</div>
 				</div>
@@ -216,17 +228,16 @@
 					</div>
 				</div>
 			</div>
-
 		</div>
 
 		<Dialog.Footer>
-			<Button variant="outline" onclick={acceptNecessary}>
+			<Button variant="outline" onclick={acceptNecessary} disabled={!agreed}>
 				仅必要 Cookie
 			</Button>
-			<Button onclick={saveCustomPreferences}>
+			<Button onclick={saveCustomPreferences} disabled={!agreed}>
 				保存设置
 			</Button>
-			<Button onclick={acceptAll}>
+			<Button onclick={acceptAll} disabled={!agreed}>
 				接受全部
 			</Button>
 		</Dialog.Footer>
