@@ -38,8 +38,16 @@
 	});
 	afterNavigate(() => {
 		cancelAnimationFrame(rafId);
-		barWidth = 100;
-		setTimeout(() => { navigating = false; barWidth = 0; }, 200);
+		const start = performance.now();
+		const fromWidth = barWidth;
+		function tick() {
+			const elapsed = performance.now() - start;
+			const t = Math.min(elapsed / 300, 1);
+			barWidth = fromWidth + (100 - fromWidth) * t;
+			if (t < 1) rafId = requestAnimationFrame(tick);
+			else setTimeout(() => { navigating = false; barWidth = 0; }, 150);
+		}
+		rafId = requestAnimationFrame(tick);
 	});
 </script>
 
