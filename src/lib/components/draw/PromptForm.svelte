@@ -70,6 +70,7 @@
 		let translateTick = $state(0);
 	let llmPrompt = $state("");
 	let hasTranslated = $state(false);
+	let rewriteMode = $state(true);
 	let presets = $state<Preset[]>([]);
 	let presetsLoaded = $state(false);
 	let presetDialogOpen = $state(false);
@@ -175,7 +176,8 @@
 					original_prompt: directPrompt || undefined,
 					negative_prompt: negativePrompt || undefined,
 					turnstile_token: translateToken || undefined,
-					mode: llmMode || undefined
+					mode: llmMode || undefined,
+					rewrite: rewriteMode
 				})
 			});
 			const data = await resp.json();
@@ -243,6 +245,10 @@
 				{translating ? "转换中..." : "转换"}
 				{#if pointsCostTranslate > 0}<Badge variant="secondary" class="ml-1 text-[10px] px-1">⚡{pointsCostTranslate}</Badge>{/if}
 			</Button>
+			<label class="flex items-center gap-1.5 text-xs cursor-pointer select-none">
+				<Checkbox bind:checked={rewriteMode} />
+				<span class="text-muted-foreground">改写</span>
+			</label>
 			{#if workflowPrompt && (directPrompt !== workflowPrompt || negativePrompt !== workflowNegativePrompt)}
 				<Button size="sm" variant="outline" onclick={() => { directPrompt = workflowPrompt; negativePrompt = workflowNegativePrompt; llmPrompt = ''; hasTranslated = false; }}>
 					<Icon icon="mdi:restore" class="size-3.5 mr-1" />
