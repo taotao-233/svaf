@@ -126,9 +126,15 @@ async function sendMessage() {
 	chatMessages = [...chatMessages, placeholder];
 
 	try {
+		// Tag preset (.txt) → 转为基座工作流，与文生图逻辑一致
+		let effectiveWfPath = workflowPath;
+		if (effectiveWfPath.endsWith('.txt')) {
+			effectiveWfPath = 'WAI/通用/无Lora.json';
+		}
+
 		const response = await chatRequest({
 			message: msg,
-			workflow_path: workflowPath || undefined,
+			workflow_path: effectiveWfPath || undefined,
 			style_tags: styleTags || undefined,
 			system_prompt: systemPrompt,
 			negative_prompt: 'worst quality, low quality, blurry',
