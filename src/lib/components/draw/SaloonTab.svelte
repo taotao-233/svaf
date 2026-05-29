@@ -3,7 +3,7 @@ import Icon from '@iconify/svelte';
 import { Button } from '$lib/components/ui/button';
 import { Alert, AlertDescription } from '$lib/components/ui/alert';
 import { Badge } from '$lib/components/ui/badge';
-import { chatRequest, addToQueue, fetchMyQueue, getImageProxyUrl } from '$lib/draw/api/client';
+import { chatRequest, addToQueue, fetchMyQueue, getImageProxyUrl, fetchChatPresets, saveChatPreset, deleteChatPreset } from '$lib/draw/api/client';
 
 let {
 	workflowPath = '',
@@ -23,9 +23,8 @@ let {
 	pointsCostSubmit?: number;
 } = $props();
 
-const PRESETS_KEY = 'chat_presets_v1';
-
 interface ChatPreset {
+	id: string;
 	name: string;
 	systemPrompt: string;
 }
@@ -58,16 +57,16 @@ let totalGenCost = $state(0);
 // 生图队列跟踪：item_id → { tags, status, imageUrl }
 let genJobs = $state<Map<number, { tags: string; status: string; imageUrl: string }>>(new Map());
 
-function loadPresets(): ChatPreset[] {
-	try { return JSON.parse(localStorage.getItem(PRESETS_KEY) || '[]'); }
-	catch { return []; }
+// 加载预设（后端 API）
+async function loadPresets() {
+	try {
+		const res = await fetchChatPresets();
+		presets = res.items || [];
+	} catch { presets = []; }
 }
 
-function savePresets(list: ChatPreset[]) {
-	localStorage.setItem(PRESETS_KEY, JSON.stringify(list));
-}
-
-$effect(() => { presets = loadPresets(); });
+// 初始化加载
+$effect(() => { loadPresets(); });
 
 function selectPreset(idx: number) {
 	selectedPresetIdx = idx;
@@ -80,26 +79,28 @@ function selectPreset(idx: number) {
 	}
 }
 
-function savePreset() {
+async function savePreset() {
 	if (!presetName.trim() || !systemPrompt.trim()) return;
-	const list = [...presets];
-	const existing = list.findIndex(p => p.name === presetName.trim());
-	const entry: ChatPreset = { name: presetName.trim(), systemPrompt: systemPrompt.trim() };
-	if (existing >= 0) list[existing] = entry;
-	else list.push(entry);
-	presets = list;
-	savePresets(list);
-	selectedPresetIdx = list.findIndex(p => p.name === presetName.trim());
+	try {
+		await saveChatPreset(presetName.trim(), systemPrompt.trim());
+		await loadPresets();
+		selectedPresetIdx = presets.findIndex(p => p.name === presetName.trim());
+	} catch (e: any) {
+		errorText = '保存失败: ' + (e.message || '未知错误');
+	}
 }
 
-function deletePreset() {
+async function deletePreset() {
 	if (selectedPresetIdx < 0 || !presets[selectedPresetIdx]) return;
-	const list = presets.filter((_, i) => i !== selectedPresetIdx);
-	presets = list;
-	savePresets(list);
-	selectedPresetIdx = -1;
-	presetName = '';
-	systemPrompt = '';
+	try {
+		await deleteChatPreset(presets[selectedPresetIdx].id);
+		await loadPresets();
+		selectedPresetIdx = -1;
+		presetName = '';
+		systemPrompt = '';
+	} catch (e: any) {
+		errorText = '删除失败: ' + (e.message || '未知错误');
+	}
 }
 
 function newPreset() {

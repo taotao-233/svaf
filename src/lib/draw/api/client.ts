@@ -356,3 +356,30 @@ export async function chatRequest(payload: ChatPayload): Promise<Response> {
 	}
 	return response;
 }
+
+// --- Chat Presets ---
+
+export interface ChatPreset {
+	id: string;
+	name: string;
+	systemPrompt: string;
+}
+
+export async function fetchChatPresets() {
+	return drawRequest<{ items: ChatPreset[] }>('/api/draw/chat-presets', { requiresAuth: true });
+}
+
+export async function saveChatPreset(name: string, systemPrompt: string) {
+	return drawRequest<{ ok: boolean; preset: ChatPreset }>('/api/draw/chat-presets', {
+		method: 'POST',
+		json: { name, systemPrompt },
+		requiresAuth: true,
+	});
+}
+
+export async function deleteChatPreset(id: string) {
+	return drawRequest<{ ok: boolean }>(`/api/draw/chat-presets/${id}`, {
+		method: 'DELETE',
+		requiresAuth: true,
+	});
+}
