@@ -202,12 +202,6 @@
 					alt={data.post.metadata.title}
 					class="w-full rounded-lg object-cover"
 				/>
-			<PageViews
-				pathname="/posts/{data.slug}/"
-				cacheKey="pv:{data.slug}"
-				class="text-sm text-muted-foreground"
-				prefix="· "
-			/>
 		</div>
 		{/if}
 	</header>
