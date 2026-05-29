@@ -4,7 +4,7 @@ import { Button } from '$lib/components/ui/button';
 import { Alert, AlertDescription } from '$lib/components/ui/alert';
 import { Badge } from '$lib/components/ui/badge';
 import { chatRequest, addToQueue, fetchMyQueue, getImageProxyUrl, fetchChatPresets, saveChatPreset, deleteChatPreset, fetchChatHistory, appendChatHistory, clearChatHistory } from '$lib/draw/api/client';
-import { onMount } from 'svelte';
+import { onMount, onDestroy } from 'svelte';
 
 let {
 	workflowPath = '',
@@ -65,9 +65,9 @@ async function loadPresets() {
 
 onMount(async () => {
 	await loadPresets();
-		try {
+	try {
 		const res = await fetchChatHistory();
-		chatHistory = res.items || [];
+		chatHistory = (res.items || []).slice(-40);
 		chatMessages = chatHistory.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content, imageUrls: m.imageUrls || [] }));
 		if (chatMessages.length > 0) {
 			// 恢复最后一条消息携带的 systemPrompt
@@ -80,6 +80,8 @@ onMount(async () => {
 		}
 	} catch {}
 });
+
+onDestroy(() => { stopQueuePolling(); });
 
 function selectPreset(idx: number) {
 	selectedPresetIdx = idx;
