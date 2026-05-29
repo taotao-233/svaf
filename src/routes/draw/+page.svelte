@@ -199,6 +199,7 @@
 	let activeTab = $state(location.hash?.slice(1) || 'generate');
 	let genSubTab = $state(location.hash?.includes('img2img') ? 'img2img' : location.hash?.includes('saloon') ? 'saloon' : 'txt2img');
 	let genTxtSubTab = $state((typeof localStorage !== 'undefined' && localStorage.getItem('draw-txt-sub-tab')) || 'wai');
+	let saloonMode = $derived(workflowPath?.startsWith('ANIMA/') ? 'anima' : 'wai');
 
 	$effect(() => {
 		try { localStorage.setItem('draw-txt-sub-tab', genTxtSubTab); } catch {}
@@ -914,7 +915,7 @@ async function startGeneration(mode = 'wai') {
 				</TabsContent>
 
 				<TabsContent value="saloon" class="mt-4">
-					<SaloonTab {workflowPath} {styleTags} {negativePrompt} {width} {height} {turnstileToken} pointsCostSubmit={genTxtSubTab === 'anima' ? (pointsConfig?.text_to_image_anima ?? 20) : (pointsConfig?.text_to_image ?? 0)} mode={genTxtSubTab} />
+					<SaloonTab {workflowPath} {styleTags} {negativePrompt} {width} {height} {turnstileToken} pointsCostSubmit={saloonMode === 'anima' ? (pointsConfig?.text_to_image_anima ?? 20) : (pointsConfig?.text_to_image ?? 0)} mode={saloonMode} />
 				</TabsContent>
 
 			</Tabs>
