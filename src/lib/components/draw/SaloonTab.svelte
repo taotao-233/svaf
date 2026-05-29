@@ -163,10 +163,11 @@ async function sendMessage() {
 		if (!reader) throw new Error('无法读取响应流');
 		const decoder = new TextDecoder();
 		let buffer = ''; let textContent = '';
+		let eventCount = 0;
 
 		while (true) {
-			const { done, value } = await reader.read();
-			if (done) break;
+			const { done: streamDone, value } = await reader.read();
+			if (streamDone) { console.log('[酒馆] stream ended, events received:', eventCount); break; }
 			buffer += decoder.decode(value, { stream: true });
 			while (true) {
 				const newlineIdx = buffer.indexOf('\n');
@@ -182,6 +183,8 @@ async function sendMessage() {
 					if (dataLine.startsWith('data: ')) {
 						try {
 							const data = JSON.parse(dataLine.slice(6));
+							eventCount++;
+							console.log('[酒馆] event:', eventType, data);
 							if (eventType === 'text' && data.content) {
 								textContent += data.content;
 								chatMessages = chatMessages.map((m, i) =>
