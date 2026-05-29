@@ -40,6 +40,7 @@
 	let walletTimer: ReturnType<typeof setInterval> | null = null;
 	let waiHelpOpen = $state(false);
 	let animaHelpOpen = $state(false);
+	let saloonHelpOpen = $state(false);
 	let dsOutage = $state(false);
 	let queuing = $state(false);
 	let queueSuccess = $state("");
@@ -849,6 +850,7 @@ async function startGeneration(mode = 'wai') {
 					<TabsTrigger value="saloon" class="flex-1">
 						<Icon icon="mdi:chat-outline" class="size-4 mr-1" />
 						酒馆（Beta）
+						<button onclick={(e) => { e.stopPropagation(); saloonHelpOpen = true; }} class="inline-flex items-center justify-center size-4 rounded-full border border-muted-foreground/40 text-muted-foreground text-[10px] font-bold ml-1 hover:border-primary hover:text-primary transition-colors" title="关于酒馆">?</button>
 					</TabsTrigger>
 				</TabsList>
 
@@ -1165,6 +1167,19 @@ async function startGeneration(mode = 'wai') {
 					<div>支持 <strong>英文 Tag</strong> 和 <strong>英文自然语言（长句子）</strong> 混搭输入，推荐以英文自然语言为主。</div>
 					<div>角色库：<a href="https://www.downloadmost.com/NoobAI-XL/danbooru-character/" target="_blank" rel="noopener noreferrer" class="text-primary underline">Danbooru Characters</a>（与 WAI 共用）</div>
 					<div>画风库：<a href="https://thetacursed.github.io/Anima-Style-Explorer/" target="_blank" rel="noopener noreferrer" class="text-primary underline">Anima Style Explorer</a>（专用）</div>
+				</div>
+			</Dialog.Description>
+		</Dialog.Header>
+	</Dialog.Content>
+</Dialog.Root>
+
+<Dialog.Root open={saloonHelpOpen} onOpenChange={(o) => saloonHelpOpen = o}>
+	<Dialog.Content class="max-w-md">
+		<Dialog.Header>
+			<Dialog.Title>ℹ️ 关于酒馆（Beta）</Dialog.Title>
+			<Dialog.Description class="text-sm leading-relaxed">
+				<div class="space-y-2">
+					<div>测试功能，不代表最终质量。如遇 Bug 请 <a href="https://2x.nz/q" target="_blank" rel="noopener noreferrer" class="text-primary underline">加群</a> 讨论。</div>
 				</div>
 			</Dialog.Description>
 		</Dialog.Header>
