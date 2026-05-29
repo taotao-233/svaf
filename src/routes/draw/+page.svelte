@@ -914,7 +914,7 @@ async function startGeneration(mode = 'wai') {
 				</TabsContent>
 
 				<TabsContent value="saloon" class="mt-4">
-					<SaloonTab {workflowPath} {styleTags} />
+					<SaloonTab {workflowPath} {styleTags} {negativePrompt} {width} {height} {turnstileToken} />
 				</TabsContent>
 
 			</Tabs>

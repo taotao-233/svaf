@@ -3,14 +3,22 @@ import Icon from '@iconify/svelte';
 import { Button } from '$lib/components/ui/button';
 import { Alert, AlertDescription } from '$lib/components/ui/alert';
 import { Badge } from '$lib/components/ui/badge';
-import { chatRequest, fetchMyQueue } from '$lib/draw/api/client';
+import { chatRequest, addToQueue, fetchMyQueue, getImageProxyUrl } from '$lib/draw/api/client';
 
 let {
 	workflowPath = '',
 	styleTags = '',
+	negativePrompt = '',
+	width = 0,
+	height = 0,
+	turnstileToken = '',
 }: {
 	workflowPath?: string;
 	styleTags?: string;
+	negativePrompt?: string;
+	width?: number;
+	height?: number;
+	turnstileToken?: string;
 } = $props();
 
 const PRESETS_KEY = 'chat_presets_v1';
@@ -23,8 +31,6 @@ interface ChatPreset {
 interface ChatMessage {
 	role: 'user' | 'assistant';
 	content: string;
-	imageUrls?: string[];
-	queuedItemIds?: number[];
 	streaming?: boolean;
 }
 
@@ -32,32 +38,26 @@ let presets = $state<ChatPreset[]>([]);
 let selectedPresetIdx = $state<number>(-1);
 let presetName = $state('');
 let systemPrompt = $state('');
-let chatHistory = $state<ChatMessage[]>([]);
 let chatMessages = $state<ChatMessage[]>([]);
+let chatHistory = $state<Array<{ role: string; content: string }>>([]);
 let inputText = $state('');
 let sending = $state(false);
 let settingsOpen = $state(true);
 let errorText = $state('');
-let queuePolling = $state(false);
 
-// 轮询中的 item_id 集合
-let pendingQueueIds = $state<Set<number>>(new Set());
+// 生图队列跟踪：item_id → { tags, status, imageUrl }
+let genJobs = $state<Map<number, { tags: string; status: string; imageUrl: string }>>(new Map());
 
-// 加载预设
 function loadPresets(): ChatPreset[] {
-	try {
-		return JSON.parse(localStorage.getItem(PRESETS_KEY) || '[]');
-	} catch { return []; }
+	try { return JSON.parse(localStorage.getItem(PRESETS_KEY) || '[]'); }
+	catch { return []; }
 }
 
 function savePresets(list: ChatPreset[]) {
 	localStorage.setItem(PRESETS_KEY, JSON.stringify(list));
 }
 
-// 初始化
-$effect(() => {
-	presets = loadPresets();
-});
+$effect(() => { presets = loadPresets(); });
 
 function selectPreset(idx: number) {
 	selectedPresetIdx = idx;
@@ -71,8 +71,7 @@ function selectPreset(idx: number) {
 }
 
 function savePreset() {
-	if (!presetName.trim()) return;
-	if (!systemPrompt.trim()) return;
+	if (!presetName.trim() || !systemPrompt.trim()) return;
 	const list = [...presets];
 	const existing = list.findIndex(p => p.name === presetName.trim());
 	const entry: ChatPreset = { name: presetName.trim(), systemPrompt: systemPrompt.trim() };
@@ -102,42 +101,55 @@ function newPreset() {
 function clearChat() {
 	chatMessages = [];
 	chatHistory = [];
-	pendingQueueIds = new Set();
+	genJobs = new Map();
+}
+
+async function submitGenJob(tags: string) {
+	// 和文生图完全一样的提交逻辑，只替换 prompt
+	let finalWfPath = workflowPath;
+	if (finalWfPath.endsWith('.txt')) {
+		finalWfPath = 'WAI/通用/无Lora.json';
+	}
+
+	try {
+		const res = await addToQueue({
+			direct_prompt: tags,
+			width: width || undefined,
+			height: height || undefined,
+			style_tags: styleTags || undefined,
+			negative_prompt: negativePrompt || undefined,
+			workflow_path: finalWfPath,
+			turnstile_token: turnstileToken || undefined,
+		});
+		genJobs = new Map(genJobs).set(res.item_id, { tags, status: 'pending', imageUrl: '' });
+		startQueuePolling();
+		return res.item_id;
+	} catch (e: any) {
+		return null;
+	}
 }
 
 async function sendMessage() {
 	const msg = inputText.trim();
 	if (!msg || sending) return;
-	if (!systemPrompt.trim()) {
-		errorText = '请先填写角色设定';
-		return;
-	}
+	if (!systemPrompt.trim()) { errorText = '请先填写角色设定'; return; }
+	if (!workflowPath) { errorText = '请先在文生图页选择工作流'; return; }
 	errorText = '';
 	sending = true;
 
-	// 添加用户消息
-	const userMsg: ChatMessage = { role: 'user', content: msg };
-	chatMessages = [...chatMessages, userMsg];
+	chatMessages = [...chatMessages, { role: 'user', content: msg }];
 	inputText = '';
 
-	// 添加助手占位
 	const assistantIdx = chatMessages.length;
-	const placeholder: ChatMessage = { role: 'assistant', content: '', streaming: true };
-	chatMessages = [...chatMessages, placeholder];
+	chatMessages = [...chatMessages, { role: 'assistant', content: '', streaming: true }];
 
 	try {
-		// Tag preset (.txt) → 转为基座工作流，与文生图逻辑一致
-		let effectiveWfPath = workflowPath;
-		if (effectiveWfPath.endsWith('.txt')) {
-			effectiveWfPath = 'WAI/通用/无Lora.json';
-		}
-
 		const response = await chatRequest({
 			message: msg,
-			workflow_path: effectiveWfPath || undefined,
+			workflow_path: workflowPath || undefined,
 			style_tags: styleTags || undefined,
 			system_prompt: systemPrompt,
-			negative_prompt: 'worst quality, low quality, blurry',
+			negative_prompt: negativePrompt || 'worst quality, low quality, blurry',
 			history: chatHistory,
 		});
 
@@ -146,7 +158,6 @@ async function sendMessage() {
 		const decoder = new TextDecoder();
 		let buffer = '';
 		let textContent = '';
-		const newItemIds: number[] = [];
 
 		while (true) {
 			const { done, value } = await reader.read();
@@ -174,13 +185,15 @@ async function sendMessage() {
 								chatMessages = chatMessages.map((m, i) =>
 									i === assistantIdx ? { ...m, content: textContent, streaming: true } : m
 								);
-							} else if (eventType === 'gen_queued') {
-								newItemIds.push(data.item_id);
-								pendingQueueIds = new Set([...pendingQueueIds, data.item_id]);
-								const queueText = `\n🎨 已提交生图 #${data.index + 1}（排队中）`;
-								chatMessages = chatMessages.map((m, i) =>
-									i === assistantIdx ? { ...m, content: m.content + queueText, streaming: true } : m
-								);
+							} else if (eventType === 'gen_tags' && data.tags?.length) {
+								// 逐个提交生图
+								for (const tags of data.tags) {
+									textContent += `\n🎨 正在提交: ${tags.slice(0, 40)}...`;
+									chatMessages = chatMessages.map((m, i) =>
+										i === assistantIdx ? { ...m, content: textContent, streaming: true } : m
+									);
+									await submitGenJob(tags);
+								}
 							} else if (eventType === 'error') {
 								textContent += `\n❌ ${data.message}`;
 								chatMessages = chatMessages.map((m, i) =>
@@ -193,19 +206,12 @@ async function sendMessage() {
 			}
 		}
 
-		// 结束流
 		chatMessages = chatMessages.map((m, i) =>
-			i === assistantIdx ? { ...m, streaming: false, queuedItemIds: newItemIds } : m
+			i === assistantIdx ? { ...m, streaming: false } : m
 		);
 
-		// 记录到历史
 		chatHistory = [...chatHistory, { role: 'user', content: msg }, { role: 'assistant', content: textContent }];
 		if (chatHistory.length > 40) chatHistory = chatHistory.slice(-40);
-
-		// 如果有入队的生图，开始轮询
-		if (newItemIds.length > 0) {
-			startQueuePolling();
-		}
 	} catch (e: any) {
 		chatMessages = chatMessages.map((m, i) =>
 			i === assistantIdx ? { ...m, content: `❌ ${e.message || '请求失败'}`, streaming: false } : m
@@ -215,66 +221,54 @@ async function sendMessage() {
 }
 
 let pollTimer: ReturnType<typeof setInterval> | null = null;
+let pollRunning = false;
 
 function startQueuePolling() {
 	if (pollTimer) return;
-	queuePolling = true;
+	pollRunning = true;
 	pollTimer = setInterval(async () => {
-		if (pendingQueueIds.size === 0) {
-			stopQueuePolling();
-			return;
-		}
+		const pending = [...genJobs.entries()].filter(([, v]) => v.status === 'pending' || v.status === 'waiting' || v.status === 'running');
+		if (pending.length === 0) { stopQueuePolling(); return; }
 		try {
 			const res = await fetchMyQueue();
 			for (const item of res.items) {
-				if (!pendingQueueIds.has(item.id)) continue;
+				const job = genJobs.get(item.id);
+				if (!job) continue;
 				if (item.status === 'done') {
-					pendingQueueIds = new Set([...pendingQueueIds].filter(id => id !== item.id));
-					// 在消息中更新状态
-					chatMessages = chatMessages.map(m => {
-						if (m.role !== 'assistant') return m;
-						const updatedContent = m.content.replace(
-							`🎨 已提交生图（排队中）`,
-							`✅ 生图完成`
-						);
-						return { ...m, content: updatedContent };
-					});
+					// 用 _output_files 构造图片 URL
+					const files = (item as any)._output_files as string[] | undefined;
+					let imageUrl = '';
+					if (files?.length) {
+						const f = files[0];
+						const parts = f.split('/');
+						const filename = parts.pop()!;
+						const subfolder = parts.join('/');
+						imageUrl = getImageProxyUrl(filename, subfolder);
+					}
+					genJobs = new Map(genJobs).set(item.id, { ...job, status: 'done', imageUrl });
 				} else if (item.status === 'failed') {
-					pendingQueueIds = new Set([...pendingQueueIds].filter(id => id !== item.id));
-					chatMessages = chatMessages.map(m => {
-						if (m.role !== 'assistant') return m;
-						const updatedContent = m.content.replace(
-							`🎨 已提交生图（排队中）`,
-							`❌ 生图失败: ${item.error || '未知错误'}`
-						);
-						return { ...m, content: updatedContent };
-					});
+					genJobs = new Map(genJobs).set(item.id, { ...job, status: 'failed' });
+				} else if (item.status !== job.status) {
+					genJobs = new Map(genJobs).set(item.id, { ...job, status: item.status });
 				}
 			}
 		} catch {}
-		if (pendingQueueIds.size === 0) stopQueuePolling();
 	}, 3000);
 }
 
 function stopQueuePolling() {
 	if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
-	queuePolling = false;
+	pollRunning = false;
 }
 
 function handleKeydown(e: KeyboardEvent) {
-	if (e.key === 'Enter' && !e.shiftKey) {
-		e.preventDefault();
-		sendMessage();
-	}
+	if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 }
 
 let chatContainer: HTMLDivElement | undefined;
 $effect(() => {
-	// 滚动到底部
 	if (chatMessages.length && chatContainer) {
-		requestAnimationFrame(() => {
-			if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
-		});
+		requestAnimationFrame(() => { if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight; });
 	}
 });
 </script>
@@ -298,7 +292,6 @@ $effect(() => {
 
 		{#if settingsOpen}
 			<div class="px-3 pb-3 space-y-2 border-t pt-2">
-				<!-- 预设选择 -->
 				<div class="flex gap-2">
 					<select
 						class="flex-1 h-8 text-xs border rounded px-2 bg-background"
@@ -316,35 +309,15 @@ $effect(() => {
 						</Button>
 					{/if}
 				</div>
-
-				<!-- 角色名 -->
-				<input
-					type="text"
-					class="w-full h-8 text-xs border rounded px-2 bg-background"
-					placeholder="给这个角色设定起个名字"
-					bind:value={presetName}
-				/>
-
-				<!-- System Prompt -->
-				<textarea
-					class="w-full text-xs border rounded px-2 py-1.5 bg-background resize-none"
-					rows="3"
-					placeholder="你正在扮演遐蝶。你是一个..."
-					bind:value={systemPrompt}
-				></textarea>
-
-				<!-- 按钮行 -->
+				<input type="text" class="w-full h-8 text-xs border rounded px-2 bg-background" placeholder="给这个角色设定起个名字" bind:value={presetName} />
+				<textarea class="w-full text-xs border rounded px-2 py-1.5 bg-background resize-none" rows="3" placeholder="你正在扮演遐蝶。你是一个..." bind:value={systemPrompt}></textarea>
 				<div class="flex gap-2">
 					<Button variant="default" size="sm" class="h-7 text-xs" onclick={savePreset}>
-						<Icon icon="mdi:content-save-outline" class="size-3.5 mr-1" />
-						保存预设
+						<Icon icon="mdi:content-save-outline" class="size-3.5 mr-1" />保存预设
 					</Button>
-					<Button variant="outline" size="sm" class="h-7 text-xs" onclick={newPreset}>
-						新建
-					</Button>
+					<Button variant="outline" size="sm" class="h-7 text-xs" onclick={newPreset}>新建</Button>
 					<Button variant="outline" size="sm" class="h-7 text-xs ml-auto" onclick={clearChat}>
-						<Icon icon="mdi:chat-remove-outline" class="size-3.5 mr-1" />
-						清空聊天
+						<Icon icon="mdi:chat-remove-outline" class="size-3.5 mr-1" />清空聊天
 					</Button>
 				</div>
 			</div>
@@ -354,9 +327,7 @@ $effect(() => {
 	<!-- 聊天消息区 -->
 	<div bind:this={chatContainer} class="flex-1 overflow-y-auto space-y-3 px-1 pb-3">
 		{#if chatMessages.length === 0}
-			<div class="flex items-center justify-center h-full text-muted-foreground text-sm">
-				开始与角色对话吧
-			</div>
+			<div class="flex items-center justify-center h-full text-muted-foreground text-sm">开始与角色对话吧</div>
 		{/if}
 		{#each chatMessages as msg, i}
 			<div class="flex {msg.role === 'user' ? 'justify-end' : 'justify-start'}">
@@ -368,33 +339,38 @@ $effect(() => {
 					{#if msg.streaming}
 						<span class="animate-pulse">|</span>
 					{/if}
-					{#if msg.imageUrls?.length}
-						{#each msg.imageUrls as url}
-							<img src={url} alt="" class="mt-2 max-w-full rounded" loading="lazy" />
-						{/each}
-					{/if}
 				</div>
 			</div>
 		{/each}
+
+		<!-- 生图结果 -->
+		{#if genJobs.size > 0}
+			<div class="flex flex-wrap gap-2 px-1">
+				{#each [...genJobs.entries()] as [id, job]}
+					<div class="border rounded-lg p-2 text-xs bg-card max-w-[200px]">
+						<div class="text-muted-foreground mb-1 truncate" title={job.tags}>{job.tags.slice(0, 50)}</div>
+						{#if job.status === 'done' && job.imageUrl}
+							<a href={job.imageUrl} target="_blank" rel="noopener">
+								<img src={job.imageUrl} alt="" class="w-full rounded" loading="lazy" />
+							</a>
+						{:else if job.status === 'failed'}
+							<span class="text-destructive">❌ 生图失败</span>
+						{:else}
+							<span class="text-muted-foreground">
+								<Icon icon="mdi:loading" class="size-3 animate-spin inline" />
+								{job.status === 'pending' ? '排队中' : job.status === 'waiting' ? '等待中' : '生图中'}
+							</span>
+						{/if}
+					</div>
+				{/each}
+			</div>
+		{/if}
 	</div>
 
 	<!-- 输入区 -->
 	<div class="flex gap-2 pt-2 border-t">
-		<input
-			type="text"
-			class="flex-1 h-9 text-sm border rounded px-3 bg-background"
-			placeholder="输入消息..."
-			bind:value={inputText}
-			onkeydown={handleKeydown}
-			disabled={sending}
-		/>
-		<Button
-			variant="default"
-			size="sm"
-			class="h-9 px-4"
-			onclick={sendMessage}
-			disabled={sending || !inputText.trim()}
-		>
+		<input type="text" class="flex-1 h-9 text-sm border rounded px-3 bg-background" placeholder="输入消息..." bind:value={inputText} onkeydown={handleKeydown} disabled={sending} />
+		<Button variant="default" size="sm" class="h-9 px-4" onclick={sendMessage} disabled={sending || !inputText.trim()}>
 			{#if sending}
 				<Icon icon="mdi:loading" class="size-4 animate-spin" />
 			{:else}
