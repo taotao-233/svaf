@@ -163,11 +163,10 @@ async function sendMessage() {
 		if (!reader) throw new Error('无法读取响应流');
 		const decoder = new TextDecoder();
 		let buffer = ''; let textContent = '';
-		let eventCount = 0;
 
 		while (true) {
 			const { done: streamDone, value } = await reader.read();
-			if (streamDone) { console.log('[酒馆] stream ended, events received:', eventCount); break; }
+			if (streamDone) break;
 			buffer += decoder.decode(value, { stream: true });
 			while (true) {
 				const newlineIdx = buffer.indexOf('\n');
@@ -183,8 +182,6 @@ async function sendMessage() {
 					if (dataLine.startsWith('data: ')) {
 						try {
 							const data = JSON.parse(dataLine.slice(6));
-							eventCount++;
-							console.log('[酒馆] event:', eventType, data);
 							if (eventType === 'text' && data.content) {
 								textContent += data.content;
 								chatMessages = chatMessages.map((m, i) =>
@@ -201,7 +198,6 @@ async function sendMessage() {
 									i === assistantIdx ? { ...m, content: textContent } : m
 								);
 							} else if (eventType === 'done') {
-								console.log('[酒馆] done event:', data);
 								if (data.llm_cost) totalLlmCost += data.llm_cost;
 								if (data.llm_tokens) totalLlmTokens += data.llm_tokens;
 							}
@@ -251,42 +247,33 @@ function startQueuePolling() {
 						const filename = parts.pop()!; const subfolder = parts.join('/');
 						imageUrl = getImageProxyUrl(filename, subfolder);
 					}
-					// 移到 imageUrls
-					chatMessages = chatMessages.map((m, i) => {
-						if (i !== msgIdx) return m;
-						const imageUrls = [...(m.imageUrls || []), imageUrl];
-						const pendingImages = (m.pendingImages || []).filter(p => p.itemId !== item.id);
-						return { ...m, imageUrls, pendingImages };
-					});
+					// 直接修改元素，不替换数组
+					if (chatMessages[msgIdx]) {
+						chatMessages[msgIdx].imageUrls = [...(chatMessages[msgIdx].imageUrls || []), imageUrl];
+						chatMessages[msgIdx].pendingImages = (chatMessages[msgIdx].pendingImages || []).filter(p => p.itemId !== item.id);
+					}
 					// 更新 chatHistory，所有图片完成后保存一次
 					const updatedMsg = chatMessages[msgIdx];
 					if (updatedMsg) {
-						chatHistory = chatHistory.map((h, i) => {
-							if (i !== msgIdx) return h;
-							return { ...h, imageUrls: updatedMsg.imageUrls };
-						});
+						if (chatHistory[msgIdx]) chatHistory[msgIdx].imageUrls = updatedMsg.imageUrls;
 						if (!updatedMsg.pendingImages?.length) {
 							try { await appendChatHistory([{ role: 'assistant', content: updatedMsg.content, imageUrls: updatedMsg.imageUrls }]); } catch {}
 						}
 					}
 					pendingItemIds = new Map([...pendingItemIds].filter(([k]) => k !== item.id));
 				} else if (item.status === 'failed') {
-					chatMessages = chatMessages.map((m, i) => {
-						if (i !== msgIdx) return m;
-						const pendingImages = (m.pendingImages || []).map(p =>
+					if (chatMessages[msgIdx]) {
+						chatMessages[msgIdx].pendingImages = (chatMessages[msgIdx].pendingImages || []).map(p =>
 							p.itemId === item.id ? { ...p, status: 'failed' } : p
 						);
-						return { ...m, pendingImages };
-					});
+					}
 					pendingItemIds = new Map([...pendingItemIds].filter(([k]) => k !== item.id));
 				} else {
-					chatMessages = chatMessages.map((m, i) => {
-						if (i !== msgIdx) return m;
-						const pendingImages = (m.pendingImages || []).map(p =>
+					if (chatMessages[msgIdx]) {
+						chatMessages[msgIdx].pendingImages = (chatMessages[msgIdx].pendingImages || []).map(p =>
 							p.itemId === item.id ? { ...p, status: item.status } : p
 						);
-						return { ...m, pendingImages };
-					});
+					}
 				}
 			}
 		} catch {}
