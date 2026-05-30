@@ -1244,6 +1244,7 @@ async function startGeneration(mode = 'wai') {
 						<li>在「文生图」页选择好工作流、画风、分辨率</li>
 						<li>开始聊天，AI 会以角色身份回复并自动生图</li>
 					</ol>
+					<div class="bg-muted p-2 rounded text-xs"><strong>💡 提示：</strong>正面提示词建议只保留角色名称 tag（如 <code>1girl, hu_tao_(genshin_impact)</code>），去掉服饰、动作等具体描绘。因为 AI 生成的生图 tags 会拼接到正面提示词后面，角色外 tag 过多会导致图片遵从度降低。</div>
 					<div><strong>计费</strong>：聊天按 LLM token 消耗点数，生图按次扣费。</div>
 					<div class="text-muted-foreground text-xs">⚠️ 测试功能，不代表最终质量。如遇 Bug 请 <a href="https://2x.nz/q" target="_blank" rel="noopener noreferrer" class="text-primary underline">加群</a> 讨论。</div>
 				</div>
