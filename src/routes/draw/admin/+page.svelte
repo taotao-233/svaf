@@ -96,6 +96,8 @@ let loadingMore = $state(false);
   let newFeaturedPath = $state('');
   let featColumns = $state<string[][]>([]);
   let featHeights: number[] = [];
+  let featSelectMode = $state(false);
+  let featSelectedPaths = $state<Set<string>>(new Set());
 
   // Banned
   let bannedUsers = $state<admin.BanEntry[]>([]);
@@ -571,6 +573,36 @@ $effect(() => {
       showMsg('success', '已移除');
     } catch (e) {
       showMsg('error', e instanceof Error ? e.message : '移除失败');
+    } finally {
+      loading = false;
+    }
+  }
+
+  function featToggleSelect(path: string) {
+    const next = new Set(featSelectedPaths);
+    if (next.has(path)) next.delete(path);
+    else next.add(path);
+    featSelectedPaths = next;
+  }
+
+  async function handleBatchRemoveFeatured() {
+    const paths = [...featSelectedPaths];
+    if (!paths.length) return;
+    if (loading) return;
+    if (!confirm(`确定移除选中的 ${paths.length} 张精选图片？`)) return;
+    loading = true;
+    try {
+      for (const p of paths) {
+        await admin.removeFeatured(p);
+      }
+      const res = await admin.getFeatured();
+      featuredPaths = res.items;
+      rebuildFeatColumns();
+      featSelectedPaths = new Set();
+      featSelectMode = false;
+      showMsg('success', `已移除 ${paths.length} 张精选图片`);
+    } catch (e) {
+      showMsg('error', e instanceof Error ? e.message : '操作失败');
     } finally {
       loading = false;
     }
@@ -1224,9 +1256,21 @@ function formatTime(ts: number) {
                 <Icon icon="mdi:plus" class="size-4 mr-1" />添加
               </Button>
             </div>
-            <Button variant="outline" size="sm" onclick={loadFeatured} disabled={loading}>
-              <Icon icon="mdi:refresh" class="size-4 mr-1" />刷新
-            </Button>
+            <div class="flex gap-2">
+              <Button variant="outline" size="sm" onclick={loadFeatured} disabled={loading}>
+                <Icon icon="mdi:refresh" class="size-4 mr-1" />刷新
+              </Button>
+              <Button variant={featSelectMode ? 'default' : 'outline'} size="sm" onclick={() => { featSelectMode = !featSelectMode; if (!featSelectMode) featSelectedPaths = new Set(); }}>
+                <Icon icon="mdi:select" class="size-4 mr-1" />
+                {featSelectMode ? '取消选择' : '选择'}
+              </Button>
+              {#if featSelectedPaths.size > 0}
+                <Button variant="destructive" size="sm" onclick={handleBatchRemoveFeatured} disabled={loading}>
+                  <Icon icon="mdi:close" class="size-4 mr-1" />
+                  取消精选 ({featSelectedPaths.size})
+                </Button>
+              {/if}
+            </div>
             {#if featuredPaths.length === 0}
               <div class="text-sm text-muted-foreground py-4 text-center">无精选图片</div>
             {:else}
@@ -1234,8 +1278,13 @@ function formatTime(ts: number) {
                 {#each featColumns as col, ci (ci)}
                   <div class="flex flex-1 flex-col gap-2 min-w-0">
                     {#each col as path (ci + '-' + path)}
-                      <div class="relative group rounded-md overflow-hidden border cursor-pointer" role="button" tabindex="0" onclick={() => openLb(path)}>
+                      <div class="relative group rounded-md overflow-hidden border cursor-pointer {featSelectMode && featSelectedPaths.has(path) ? 'ring-2 ring-primary' : ''}" role="button" tabindex="0" onclick={() => { if (featSelectMode) featToggleSelect(path); else openLb(path); }}>
                         <img src={getImageProxyUrl(path)} alt={path} loading="lazy" decoding="async" style="aspect-ratio: 1;" onload={handleImgLoad} class="block w-full h-auto bg-muted" />
+                        {#if featSelectMode}
+                          <div class="absolute top-1 left-1 flex items-center justify-center" onclick={(e) => e.stopPropagation()}>
+                            <input type="checkbox" checked={featSelectedPaths.has(path)} onchange={() => featToggleSelect(path)} class="size-4 accent-primary" />
+                          </div>
+                        {/if}
                         <button
                           class="absolute top-1 right-1 p-0.5 rounded bg-destructive/80 text-white hover:bg-destructive opacity-0 group-hover:opacity-100 transition-opacity"
                           onclick={() => handleRemoveFeatured(path)}
