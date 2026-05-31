@@ -5,6 +5,9 @@ import { Label } from '$lib/components/ui/label';
 import { Alert, AlertDescription } from '$lib/components/ui/alert';
 import { forumAuth } from '$lib/forum/stores/auth';
 import { generateTts, fetchTtsStatus, getTtsResultUrl } from '$lib/draw/api/client';
+import { Badge } from '$lib/components/ui/badge';
+
+let { pointsCostSubmit = 0 }: { pointsCostSubmit?: number } = $props();
 
 let audioFile = $state<File | null>(null);
 let audioUrl = $state('');
@@ -165,6 +168,9 @@ function statusLabel(s: string): string {
 	<Button onclick={handleSubmit} disabled={submitting || !audioFile || !targetText || !!queueItemId} class="w-full">
 		<Icon icon="mdi:send" class="size-4 mr-1" />
 		{submitting ? '提交中...' : queueItemId ? '已加入队列' : '开始转换'}
+		{#if pointsCostSubmit > 0}
+			<Badge variant="secondary" class="ml-1.5 text-[10px] px-1">⚡{pointsCostSubmit}</Badge>
+		{/if}
 	</Button>
 
 	<!-- 错误 -->
