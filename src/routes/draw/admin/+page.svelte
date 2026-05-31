@@ -1000,7 +1000,7 @@ function formatTime(ts: number) {
             </div>
           </CardContent>
         </Card>
-        <div class="sticky top-14 z-10 bg-background py-2 flex flex-wrap gap-2 items-center border-b">
+        <div class="sticky top-10 z-10 bg-background py-2 flex flex-wrap gap-2 items-center border-b">
               <Button variant={selectMode ? 'default' : 'outline'} size="sm" onclick={() => { selectMode = !selectMode; }}>
                 <Icon icon="mdi:select" class="size-4 mr-1" />
                 {selectMode ? '取消选择' : '选择'}
