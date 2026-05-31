@@ -122,6 +122,14 @@ let loadingMore = $state(false);
 	let adminPlans = $state<Array<{ id: string; name: string; points: number; url: string }>>([]);
 	let searchUid = $state('');
 	let searchedWallet = $state<{ user_id: number; balance: number; total_purchased: number; _edit?: number } | null>(null);
+	let ttsRecords = $state<Array<{ id: number; user_id: number; text: string; refText: string | null; xVectorMode: boolean; language: string; audioDuration: number; cost: number; outputPath: string | null; created_at: number; finished_at: number }>>([]);
+	let ttsRecordsLoading = $state(false);
+
+	async function loadTtsRecords() {
+		ttsRecordsLoading = true;
+		try { ttsRecords = (await admin.fetchTtsRecords()).items; } catch { ttsRecords = []; }
+		finally { ttsRecordsLoading = false; }
+	}
 
 	function searchUidByWallet() {
 		const uid = Number(searchUid);
@@ -911,6 +919,9 @@ function formatTime(ts: number) {
 				<TabsTrigger value="credits" class="text-xs">
 					<Icon icon="mdi:wallet-outline" class="size-3.5 mr-1" />额度
 				</TabsTrigger>
+				<TabsTrigger value="tts-records" class="text-xs">
+					<Icon icon="mdi:voice" class="size-3.5 mr-1" />TTS
+				</TabsTrigger>
 				<TabsTrigger value="limits" class="text-xs">
 					<Icon icon="mdi:tune-vertical" class="size-3.5 mr-1" />配置
 				</TabsTrigger>
@@ -1436,11 +1447,43 @@ function formatTime(ts: number) {
 				</Card>
 			</TabsContent>
 
+			<TabsContent value="tts-records" class="mt-4">
+				<Card>
+					<CardHeader>
+						<CardTitle class="text-base">TTS 记录</CardTitle>
+						<CardDescription>语音生成历史（最近 500 条）</CardDescription>
+					</CardHeader>
+					<CardContent>
+						<Button size="sm" onclick={loadTtsRecords} disabled={ttsRecordsLoading}>刷新</Button>
+						<div class="mt-3 space-y-2 max-h-[600px] overflow-y-auto">
+							{#each ttsRecords as rec}
+								<div class="text-xs border rounded-lg px-3 py-2 space-y-1">
+									<div class="flex items-center gap-2 text-muted-foreground">
+										<span>UID {rec.user_id}</span>
+										<span class="ml-auto">⚡{rec.cost} | {rec.language} | {rec.audioDuration.toFixed(1)}s</span>
+									</div>
+									<div class="truncate font-medium">{rec.text}</div>
+									{#if rec.refText}
+										<div class="truncate text-muted-foreground">参考: {rec.refText}</div>
+									{/if}
+									<div class="text-muted-foreground">
+										{new Date(rec.finished_at * 1000).toLocaleString()}
+									</div>
+								</div>
+							{/each}
+							{#if !ttsRecordsLoading && ttsRecords.length === 0}
+								<p class="text-xs text-muted-foreground text-center py-4">暂无记录</p>
+							{/if}
+						</div>
+					</CardContent>
+				</Card>
+			</TabsContent>
+
 			<TabsContent value="limits" class="mt-4">
 				<Card>
 					<CardHeader>
-						<CardTitle class="text-base">系统配置</CardTitle>
-						<CardDescription>修改速率限制和其他参数</CardDescription>
+						<CardTitle class="text-base">配置</CardTitle>
+						<CardDescription>生图限制</CardDescription>
 					</CardHeader>
 					<CardContent class="space-y-4">
 						<Button variant="outline" size="sm" onclick={loadLimits} disabled={loading}>
