@@ -822,16 +822,23 @@ async function startGeneration(mode = 'wai') {
     </Dialog.Content>
   </Dialog.Root>
 
-  <!-- API 离线日志 -->
-  {#if $redirectLogs.length > 0 && apiStatusValue === 'offline'}
-    <div class="rounded-lg border border-red-800 bg-red-950/30 p-3 space-y-0.5 text-[11px] font-mono text-red-400 max-h-32 overflow-y-auto">
-      {#each $redirectLogs as log}
-        <div>{log}</div>
-      {/each}
+  <!-- API 检测：未在线时只显示日志 -->
+  {#if apiStatusValue !== 'online'}
+    <div class="py-8 space-y-4">
+      <div class="text-center text-sm text-muted-foreground">
+        {apiStatusValue === 'checking' ? '正在检测 API 状态...' : 'API 离线，请检查网络或联系管理员'}
+      </div>
+      {#if $redirectLogs.length > 0}
+        <div class="rounded-lg border border-red-800 bg-red-950/30 p-4 space-y-1 text-xs font-mono text-red-400 max-h-60 overflow-y-auto">
+          {#each $redirectLogs as log}
+            <div>{log}</div>
+          {/each}
+        </div>
+      {/if}
     </div>
   {/if}
 
-
+  {#if apiStatusValue === 'online'}
   <!-- Auth warning -->
   {#if !isLoggedIn}
     <Alert>
@@ -860,24 +867,13 @@ async function startGeneration(mode = 'wai') {
   {/if}
 
   <!-- Tabs -->
-  {#if apiStatusValue === 'checking'}
+  {#if forkMessage}
     <Alert>
-      <Icon icon="mdi:cloud-question" class="size-4" />
-      <AlertDescription class="text-xs">正在检测后端 API 状态，请稍候...</AlertDescription>
+      <Icon icon="mdi:information" class="size-4 shrink-0" />
+      <AlertDescription class="text-xs">{forkMessage}</AlertDescription>
+      <button class="ml-auto text-xs underline" onclick={() => (forkMessage = '')}>关闭</button>
     </Alert>
-  {:else if apiStatusValue === 'offline'}
-    <Alert variant="destructive">
-      <Icon icon="mdi:cloud-alert" class="size-4" />
-      <AlertDescription class="text-xs">后端不可用，二叉树树目前可能需要使用电脑，未启用生图功能。您可以尝试<a href="https://2x.nz/q" target="_blank" rel="noopener noreferrer" class="underline font-medium">加入官方群聊</a>，群内Bot会在生图上线/下线实时提醒。感谢您的支持！</AlertDescription>
-    </Alert>
-  {:else}
-    {#if forkMessage}
-      <Alert>
-        <Icon icon="mdi:information" class="size-4 shrink-0" />
-        <AlertDescription class="text-xs">{forkMessage}</AlertDescription>
-        <button class="ml-auto text-xs underline" onclick={() => (forkMessage = '')}>关闭</button>
-      </Alert>
-    {/if}
+  {/if}
   <Tabs bind:value={activeTab} class="w-full">
     <TabsList class="w-full">
       <TabsTrigger value="generate" class="flex-1">
