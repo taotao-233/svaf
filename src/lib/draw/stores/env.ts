@@ -146,6 +146,7 @@ export async function resolveApiRedirect(force = false): Promise<void> {
   const now = Date.now();
   if (!force && now - _redirectFailAt < REDIRECT_COOLDOWN) return;
   _redirectPending = (async () => {
+    redirectLogs.set([]);
     apiStatus.set('checking');
     const baseUrl = get(drawEnv.baseUrl);
     addRedirectLog(`检测 ${baseUrl}/health`);
