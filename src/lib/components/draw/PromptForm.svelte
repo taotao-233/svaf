@@ -35,7 +35,7 @@
 		pointsCostSubmit = 0,
 		llmMode = '',
 		llmTokenPerPoint = 0,
-		turnstileEnabled = true,
+		turnstileEnabled = false,
 	}: {
 		directPrompt?: string;
 		negativePrompt?: string;

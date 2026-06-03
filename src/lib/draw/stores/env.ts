@@ -150,7 +150,7 @@ export async function resolveApiRedirect(force = false): Promise<void> {
     const resp = await fetch(`${baseUrl}/health?_t=${Date.now()}`, { method: 'GET' });
     addRedirectLog(`response status=${resp.status} url=${resp.url}`);
     if (!resp.ok) { addRedirectLog(`not ok`); throw new Error('health check failed'); }
-    const finalUrl = resp.url.replace(/\/+$/, '').replace(/\/health$/, '');
+    const finalUrl = new URL(resp.url.replace(/\/health[\?&].*$/, '').replace(/\/health$/, '')).origin;
     addRedirectLog(`baseUrl=${baseUrl} finalUrl=${finalUrl}`);
     if (finalUrl !== baseUrl && finalUrl.startsWith('http')) {
       addRedirectLog(`redirect detected, updating to ${finalUrl}`);

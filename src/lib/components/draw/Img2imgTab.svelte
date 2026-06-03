@@ -16,7 +16,7 @@ import { Badge } from '$lib/components/ui/badge';
       turnstileTick = $bindable(0),
     pointsCostSubmit = 0,
     llmTokenPerPoint = 0,
-    turnstileEnabled = true,
+    turnstileEnabled = false,
     maxImages = 2,
     workflowPath = '',
     showConsistency = false,
