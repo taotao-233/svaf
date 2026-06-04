@@ -145,7 +145,7 @@ onMount(async () => {
         placeholder="【角色】五十多岁的中年男性，声音低沉浑厚
 【场景】深夜在书房给远方的儿子写信
 【指导】语速缓慢，带着慈爱与叮嘱，偶尔停顿思考"
-        class="w-full rounded-lg border border-input bg-background px-3 py-2 text-xs placeholder:text-muted-foreground resize-none"></textarea>
+        class="w-full rounded-lg border border-input bg-background px-3 py-2 text-xs placeholder:text-muted-foreground resize-y scrollbar-hide"></textarea>
       <details class="text-[10px] text-muted-foreground">
         <summary class="cursor-pointer hover:text-foreground">可用风格标签</summary>
         <div class="mt-1 space-y-0.5">
@@ -239,7 +239,7 @@ onMount(async () => {
     <Label for="tts-text">要合成的文字</Label>
     <textarea id="tts-text" bind:value={targetText} rows={3}
       placeholder="输入要合成语音的文字内容"
-      class="w-full rounded-lg border border-input bg-background px-3 py-2 text-xs placeholder:text-muted-foreground resize-none"></textarea>
+      class="w-full rounded-lg border border-input bg-background px-3 py-2 text-xs placeholder:text-muted-foreground resize-y scrollbar-hide"></textarea>
   </div>
 
   <!-- Submit -->
@@ -287,3 +287,8 @@ onMount(async () => {
     </div>
   {/if}
 </div>
+
+<style>
+  :global(.scrollbar-hide)::-webkit-scrollbar { display: none; }
+  :global(.scrollbar-hide) { scrollbar-width: none; -ms-overflow-style: none; }
+</style>
