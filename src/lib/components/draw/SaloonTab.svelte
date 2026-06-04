@@ -185,7 +185,7 @@ async function sendMessage() {
   const msg = inputText.trim();
   if (!msg || sending) return;
   if (!systemPrompt.trim()) { errorText = '请先填写角色设定'; return; }
-  if (!workflowPath) { errorText = '请先在文生图页选择工作流'; return; }
+  if (genEnabled && !workflowPath) { errorText = '请先在文生图页选择工作流'; return; }
   errorText = ''; sending = true;
   cancelNudge();
 
