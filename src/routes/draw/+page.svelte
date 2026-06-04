@@ -1208,7 +1208,6 @@ async function startGeneration(mode = 'wai') {
               {/if}
             {/if}
 
-            <!-- 酒馆生成 -->
             <div class="pt-4 border-t mt-4">
               <div class="flex items-center justify-between mb-2">
                 <h3 class="text-sm font-medium flex items-center gap-1.5"><Icon icon="mdi:auto-fix" class="size-4" />酒馆生成</h3>
@@ -1235,16 +1234,7 @@ async function startGeneration(mode = 'wai') {
               {/if}
             </div>
 
-
-            
-          </div>
-        {/each}
-      {/if}
-    </div>
-  </Dialog.Content>
-</Dialog.Root>
-
-
+            </div>
 <Dialog.Root open={waiHelpOpen} onOpenChange={(o) => waiHelpOpen = o}>
   <Dialog.Content class="max-w-md">
     <Dialog.Header>
