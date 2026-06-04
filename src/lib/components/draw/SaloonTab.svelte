@@ -49,6 +49,7 @@ interface ChatMessage {
   streaming?: boolean;
   imageUrls?: string[];
   pendingImages?: PendingImage[];
+  ttsUrl?: string;
 }
 
 let presets = $state<ChatPreset[]>([]);
@@ -58,13 +59,11 @@ let systemPrompt = $state('');
 let chatMessages = $state<ChatMessage[]>([]);
 let ttsEnabled = $state(typeof localStorage !== 'undefined' ? localStorage.getItem('saloon-tts') === 'true' : false);
 let ttsLoading = $state(false);
-let ttsAudioUrl = $state('');
 $effect(() => { try { localStorage.setItem('saloon-tts', String(ttsEnabled)); } catch {} });
 
-async function speakMessage(text: string) {
+async function speakMessage(text: string, msgIdx?: number) {
   if (ttsLoading || !text) return;
   ttsLoading = true;
-  ttsAudioUrl = '';
   try {
     const res = await drawRequest<{ ok: boolean; filename: string }>('/api/draw/tts/synthesize', {
       method: 'POST',
@@ -78,7 +77,10 @@ async function speakMessage(text: string) {
       requiresAuth: true,
     });
     if (res.ok && res.filename) {
-      ttsAudioUrl = getImageUrl(res.filename);
+      const url = getImageUrl(res.filename);
+      if (msgIdx !== undefined) {
+        chatMessages = chatMessages.map((m, i) => i === msgIdx ? { ...m, ttsUrl: url } : m);
+      }
     }
   } catch {}
   ttsLoading = false;
@@ -258,7 +260,7 @@ async function sendMessage() {
     chatMessages = chatMessages.map((m, i) => i === assistantIdx ? { ...m, streaming: false } : m);
 
     // 朗读模式：自动 TTS
-    if (ttsEnabled && textContent.trim()) { speakMessage(textContent); }
+    if (ttsEnabled && textContent.trim()) { speakMessage(textContent, assistantIdx); }
 
     // 历史保存原始 fullText（含 [GEN:] 标签），让 LLM 能看到之前的生图 tags
     // 显示用 textContent（干净文本），UI 已过滤
@@ -410,7 +412,7 @@ async function sendNudge() {
     }
     chatMessages = chatMessages.map((m, i) => i === nudgeIdx ? { ...m, streaming: false } : m);
     // 朗读模式：自动 TTS
-    if (ttsEnabled && fullText.trim()) { speakMessage(fullText); }
+    if (ttsEnabled && fullText.trim()) { speakMessage(fullText, nudgeIdx); }
     chatHistory = [...chatHistory, { role: 'assistant', content: fullText }];
     if (chatHistory.length > 40) chatHistory = chatHistory.slice(-40);
     try {
@@ -509,7 +511,12 @@ $effect(() => {
                       {pending.status === 'pending' ? '排队中' : pending.status === 'waiting' ? '等待中' : '生图中'}
                     </span>
                   {/if}
-                </div>
+
+          {#if msg.ttsUrl}
+            <div class="mt-1.5">
+              <audio src={msg.ttsUrl} controls class="w-full h-8 max-w-[200px]" preload="none"></audio>
+            </div>
+          {/if}                </div>
               {/each}
             </div>
           {/if}
@@ -540,9 +547,6 @@ $effect(() => {
       {#if sending}<Icon icon="mdi:loading" class="size-4 animate-spin" />{:else}<Icon icon="mdi:send" class="size-4" />{/if}
     </Button>
   </div>
-  {#if ttsAudioUrl}
-    <audio src={ttsAudioUrl} controls autoplay class="w-full h-9 mt-1" onended={() => { ttsAudioUrl = ''; }}></audio>
-  {/if}
 
   {#if errorText}
     <Alert variant="destructive" class="mt-2">
