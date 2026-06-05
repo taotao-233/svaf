@@ -123,7 +123,7 @@ let loadingMore = $state(false);
   // Credits / Wallet
   let wallets = $state<Array<{ user_id: number; balance: number; total_purchased: number; _edit?: number }>>([]);
   let adminPlans = $state<Array<{ id: string; name: string; points: number; url: string }>>([]);
-  let storageItems = $state<Array<{ user_id: number; files: number; size: number }>>([]);
+  let storageItems = $state<Array<{ user_id: number; img_files: number; img_size: number; aud_files: number; aud_size: number }>>([]);
   let storageTotal = $state(0);
   let storageLoading = $state(false);
 
@@ -1822,14 +1822,24 @@ function formatTime(ts: number) {
               </div>
               <div class="space-y-1 max-h-[600px] overflow-y-auto">
                 {#each storageItems as item, i}
+                  {@const maxSize = Math.max(...storageItems.map(s => s.img_size + s.aud_size))}
+                  {@const totSize = item.img_size + item.aud_size}
+                  {@const imgPct = maxSize > 0 ? item.img_size / maxSize * 100 : 0}
+                  {@const audPct = maxSize > 0 ? item.aud_size / maxSize * 100 : 0}
                   <div class="flex items-center gap-2 text-xs border rounded px-3 py-1.5 {i < 3 ? 'bg-primary/5 border-primary/20' : ''}">
                     <span class="w-6 text-center font-mono text-muted-foreground {i < 3 ? 'text-primary' : ''}">#{i + 1}</span>
                     <span class="font-medium w-12">UID {item.user_id}</span>
-                    <div class="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                      <div class="h-full bg-primary/60 rounded-full transition-all" style="width: {item.size / Math.max(...storageItems.map(s => s.size)) * 100}%"></div>
+                    <div class="flex-1 space-y-0.5">
+                      <div class="h-2 bg-muted rounded-full overflow-hidden flex">
+                        <div class="h-full bg-blue-500/70 rounded-l-full transition-all" style="width: {imgPct}%" title="图片 {formatSize(item.img_size)}"></div>
+                        <div class="h-full bg-amber-500/70 rounded-r-full transition-all" style="width: {audPct}%" title="音频 {formatSize(item.aud_size)}"></div>
+                      </div>
+                      <div class="flex gap-3 text-[10px] text-muted-foreground">
+                        <span class="flex items-center gap-1"><span class="size-2 rounded-sm bg-blue-500/70 inline-block"></span>图片 {formatSize(item.img_size)} ({item.img_files} 个)</span>
+                        <span class="flex items-center gap-1"><span class="size-2 rounded-sm bg-amber-500/70 inline-block"></span>音频 {formatSize(item.aud_size)} ({item.aud_files} 个)</span>
+                      </div>
                     </div>
-                    <span class="w-20 text-right font-mono">{formatSize(item.size)}</span>
-                    <span class="w-16 text-right text-muted-foreground">{item.files} 个文件</span>
+                    <span class="w-20 text-right font-mono shrink-0">{formatSize(totSize)}</span>
                   </div>
                 {/each}
               </div>
