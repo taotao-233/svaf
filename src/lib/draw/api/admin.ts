@@ -273,3 +273,7 @@ export async function resolveRecommendations(recIds: string[], action: 'approve'
   export async function fetchStats() {
     return drawRequest<{ stats: Record<string, any>; income: Record<string, number> }>('/api/draw/admin/stats');
   }
+
+  export async function fetchStorage() {
+    return drawRequest<{ items: Array<{ user_id: number; files: number; size: number }>; total_size: number }>('/api/draw/admin/storage');
+  }

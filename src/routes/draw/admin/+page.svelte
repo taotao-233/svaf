@@ -123,6 +123,22 @@ let loadingMore = $state(false);
   // Credits / Wallet
   let wallets = $state<Array<{ user_id: number; balance: number; total_purchased: number; _edit?: number }>>([]);
   let adminPlans = $state<Array<{ id: string; name: string; points: number; url: string }>>([]);
+  let storageItems = $state<Array<{ user_id: number; files: number; size: number }>>([]);
+  let storageTotal = $state(0);
+  let storageLoading = $state(false);
+
+  async function loadStorage() {
+    storageLoading = true;
+    try { const r = await admin.fetchStorage(); storageItems = r.items; storageTotal = r.total_size; } catch { storageItems = []; storageTotal = 0; }
+    finally { storageLoading = false; }
+  }
+
+  function formatSize(bytes: number): string {
+    if (bytes === 0) return '0 B';
+    const units = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+    return (bytes / Math.pow(1024, i)).toFixed(i > 0 ? 1 : 0) + ' ' + units[i];
+  }
   let searchUid = $state('');
   let searchedWallet = $state<{ user_id: number; balance: number; total_purchased: number; _edit?: number } | null>(null);
   let ttsRecords = $state<Array<{ id: number; user_id: number; text: string; refText: string | null; xVectorMode: boolean; language: string; audioDuration: number; cost: number; outputPath: string | null; created_at: number; finished_at: number }>>([]);
@@ -893,6 +909,9 @@ function formatTime(ts: number) {
     if (activeTab !== 'llm') {
       llmModels = null;
     }
+    if (activeTab === 'storage') {
+      loadStorage();
+    }
     if (activeTab === 'debug') {
       loadDebug();
       debugInterval = setInterval(loadDebug, 2000);
@@ -979,6 +998,9 @@ function formatTime(ts: number) {
         </TabsTrigger>
         <TabsTrigger value="stats" class="text-xs">
           <Icon icon="mdi:chart-box-outline" class="size-3.5 mr-1" />统计
+        </TabsTrigger>
+        <TabsTrigger value="storage" class="text-xs">
+          <Icon icon="mdi:harddisk" class="size-3.5 mr-1" />存储
         </TabsTrigger>
 
       </TabsList>
@@ -1779,6 +1801,41 @@ function formatTime(ts: number) {
 
       <TabsContent value="stats" class="mt-4">
         <StatsTab />
+      </TabsContent>
+
+      <TabsContent value="storage" class="mt-4">
+        <Card>
+          <CardHeader>
+            <CardTitle class="text-base">存储用量</CardTitle>
+            <CardDescription>按用户统计图片和音频文件占用空间</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {#if storageLoading}
+              <div class="text-xs text-muted-foreground py-4 text-center">加载中...</div>
+            {:else if storageItems.length === 0}
+              <div class="text-xs text-muted-foreground py-4 text-center">暂无数据</div>
+            {:else}
+              <div class="flex items-center gap-2 mb-3 text-xs text-muted-foreground">
+                <span>总计：{formatSize(storageTotal)}</span>
+                <span class="text-muted-foreground/50">|</span>
+                <span>用户数：{storageItems.length}</span>
+              </div>
+              <div class="space-y-1 max-h-[600px] overflow-y-auto">
+                {#each storageItems as item, i}
+                  <div class="flex items-center gap-2 text-xs border rounded px-3 py-1.5 {i < 3 ? 'bg-primary/5 border-primary/20' : ''}">
+                    <span class="w-6 text-center font-mono text-muted-foreground {i < 3 ? 'text-primary' : ''}">#{i + 1}</span>
+                    <span class="font-medium w-12">UID {item.user_id}</span>
+                    <div class="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                      <div class="h-full bg-primary/60 rounded-full transition-all" style="width: {item.size / Math.max(...storageItems.map(s => s.size)) * 100}%"></div>
+                    </div>
+                    <span class="w-20 text-right font-mono">{formatSize(item.size)}</span>
+                    <span class="w-16 text-right text-muted-foreground">{item.files} 个文件</span>
+                  </div>
+                {/each}
+              </div>
+            {/if}
+          </CardContent>
+        </Card>
       </TabsContent>
 
       <!-- GC -->
