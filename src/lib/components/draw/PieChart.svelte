@@ -75,7 +75,9 @@
         {@const pct = total > 0 ? (val / total * 100).toFixed(1) : '0'}
         {@const color = colorScheme[slicesWithOffset.indexOf(s) % colorScheme.length]}
         {#if val > 0}
-          <path d={arcPath(val, s._offset)} fill={color} opacity="0.85" class="hover:opacity-100 transition-opacity cursor-pointer" title={String(s[labelKey]) + '\n' + pct + '% | ' + formatSize(val)} />
+          <path d={arcPath(val, s._offset)} fill={color} opacity="0.85" class="hover:opacity-100 transition-opacity cursor-pointer">
+            <title>{String(s[labelKey])} | {pct}% | {formatSize(val)}</title>
+          </path>
         {/if}
       {/each}
     <text x={cx} y={cy - 4} text-anchor="middle" class="fill-foreground text-xs font-bold">{formatSize(total)}</text>
