@@ -1,5 +1,5 @@
 ---
-title: 我不知道怎么起标题...
+title: 二叉树树你个大傻逼
 published: 2026-06-05
 description: 本文讲述了一个傻逼从丢失CF账号到放弃找回到创建新号被迫迁移关键数据以及最终将部分服务从Serverless迁移到Server，最后，天亮了
 image: img/index.png
