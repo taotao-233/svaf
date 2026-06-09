@@ -123,6 +123,8 @@ function createEnvStore(): DrawEnvStore {
 
 export const drawEnv: DrawEnvStore = createEnvStore();
 
+let _done = false;
+
 export async function resolveApiRedirect(): Promise<void> {
   if (_done) return;
   _done = true;
