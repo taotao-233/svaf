@@ -78,8 +78,9 @@ function createEnvStore(): DrawEnvStore {
     readLocalStorage<DrawApiEnv | string>(DRAW_API_ENV_STORAGE_KEY, 'prod')
   );
   const envStore = writable<DrawApiEnv>(initialEnv);
-  // 每次刷新从硬编码地址开始，不读取之前保存的重定向地址
-  const customBaseUrlStore = writable<string>(DRAW_API_BASE_URLS[initialEnv]);
+  // 开发模式保留自定义地址，生产模式每次刷新重置为默认
+  const savedUrl = initialEnv === 'dev' ? readLocalStorage<string>(DRAW_API_CUSTOM_BASE_URL_STORAGE_KEY, '') : '';
+  const customBaseUrlStore = writable<string>(savedUrl || DRAW_API_BASE_URLS[initialEnv]);
 
   const baseUrl = derived([envStore, customBaseUrlStore], ([$env, $custom]) =>
     sanitizeBaseUrl($custom, $env)
