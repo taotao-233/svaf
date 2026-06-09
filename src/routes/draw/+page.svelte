@@ -1257,7 +1257,6 @@ async function startGeneration(mode = 'wai') {
     </TabsContent>
 
     </Tabs>
-  {/if}
 <ImageLightbox
   open={myLbOpen}
   images={myLbImages}
