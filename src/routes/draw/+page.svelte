@@ -227,14 +227,17 @@ let ttsTags = $state('');
 
   $effect(() => {
     const unsub = apiError.subscribe((v) => {
-        if (v) console.log('[FORK] apiError set to:', v);
+      if (v) console.log('[API] 错误设置:', v);
       apiErrorMessage = v || '';
     });
     return unsub;
   });
 
   $effect(() => {
-    const unsub = apiStatus.subscribe((v) => (apiStatusValue = v));
+    const unsub = apiStatus.subscribe((v) => {
+      console.log('[API] 状态变化:', v);
+      apiStatusValue = v;
+    });
     return unsub;
   });
 
