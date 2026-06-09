@@ -2,69 +2,60 @@
   import { get } from 'svelte/store';
   import { Button } from '$lib/components/ui/button';
   import { Input } from '$lib/components/ui/input';
-  import Icon from '@iconify/svelte';
-  import { DRAW_API_BASE_URLS, drawEnv, redirectLogs } from '$lib/draw/stores/env';
+  import { DRAW_API_BASE_URLS, drawEnv } from '$lib/draw/stores/env';
 
   const initialEnv = get(drawEnv);
   let currentEnv = $state(initialEnv);
   let customBaseUrl = $state(DRAW_API_BASE_URLS[initialEnv]);
-  let currentBaseUrl = $state(DRAW_API_BASE_URLS[initialEnv]);
 
   $effect(() => {
     const u1 = drawEnv.subscribe((v) => (currentEnv = v));
     const u2 = drawEnv.customBaseUrl.subscribe((v) => (customBaseUrl = v));
-    const u3 = drawEnv.baseUrl.subscribe((v) => (currentBaseUrl = v));
-    return () => {
-      u1();
-      u2();
-      u3();
-    };
+    return () => { u1(); u2(); };
   });
 
-  function toggleEnv() {
+  function toggle() {
+    const goingProd = currentEnv === 'dev';
     drawEnv.toggle();
+    if (goingProd) {
+      drawEnv.customBaseUrl.set(DRAW_API_BASE_URLS.prod);
+    } else {
+      const saved = localStorage.getItem('draw-api-custom-base-url');
+      drawEnv.customBaseUrl.set(saved || DRAW_API_BASE_URLS.dev);
+    }
   }
-  function applyCustomBaseUrl() {
+  function apply() {
     drawEnv.customBaseUrl.set(customBaseUrl);
+    location.reload();
   }
-  function resetBaseUrl() {
+  function resetUrl() {
     drawEnv.customBaseUrl.reset(currentEnv);
+    customBaseUrl = DRAW_API_BASE_URLS[currentEnv];
   }
 </script>
 
-<div class="rounded-lg border bg-muted/30 text-sm p-4 space-y-3">
-  <div class="flex items-center gap-2 font-medium mb-1">
-    <Icon icon="mdi:cloud-sync-outline" class="size-5 text-primary" />
-    <span>高级设置</span>
-    <span class="ml-auto text-xs text-muted-foreground">生图环境：{currentEnv === 'prod' ? '生产' : '开发'}</span>
-  </div>
-  <div class="flex flex-wrap items-center gap-2">
-    <span class="font-medium">环境切换</span>
-    <Button
-      size="sm"
-      variant={currentEnv === 'prod' ? 'default' : 'outline'}
-      onclick={toggleEnv}
-    >
+<div class="space-y-3">
+  <div class="flex items-center gap-2 font-medium">
+    <span>API 设置</span>
+    <span class="text-xs text-muted-foreground">
       {currentEnv === 'prod' ? '生产' : '开发'}
-    </Button>
-    <span class="text-xs text-muted-foreground break-all">当前：{currentBaseUrl}</span>
+    </span>
+    <span class="ml-auto">
+      {#if currentEnv === 'prod'}
+        <Button size="sm" variant="outline" class="text-xs" onclick={toggle}>开发</Button>
+      {:else}
+        <Button size="sm" variant="default" class="text-xs" onclick={toggle}>生产</Button>
+      {/if}
+    </span>
   </div>
-  <div class="flex flex-col gap-2 md:flex-row md:items-center">
+
+  <div class="flex gap-2">
     <Input
       bind:value={customBaseUrl}
-      placeholder="手动输入生图 API baseURL，例如 http://localhost:8080"
-      class="min-w-0 flex-1"
+      placeholder="API baseURL"
+      class="flex-1"
     />
-    <div class="flex gap-2">
-      <Button variant="outline" size="sm" onclick={applyCustomBaseUrl}>应用</Button>
-      <Button variant="ghost" size="sm" onclick={resetBaseUrl}>重置</Button>
-    </div>
+    <Button size="sm" variant="default" onclick={apply}>应用并刷新</Button>
+    <Button size="sm" variant="ghost" onclick={resetUrl}>恢复默认</Button>
   </div>
-  {#if $redirectLogs.length > 0}
-    <div class="space-y-0.5 text-[10px] font-mono text-muted-foreground bg-muted/50 rounded p-2 max-h-24 overflow-y-auto">
-      {#each $redirectLogs as log}
-        <div>{log}</div>
-      {/each}
-    </div>
-  {/if}
 </div>
