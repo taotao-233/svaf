@@ -9,7 +9,6 @@
   let currentEnv = $state(initialEnv);
   let customBaseUrl = $state(DRAW_API_BASE_URLS[initialEnv]);
   let currentBaseUrl = $state(DRAW_API_BASE_URLS[initialEnv]);
-  let open = $state(false);
 
   $effect(() => {
     const u1 = drawEnv.subscribe((v) => (currentEnv = v));
@@ -33,58 +32,39 @@
   }
 </script>
 
-<details
-  class="rounded-lg border bg-muted/30 text-sm group"
-  bind:open
->
-  <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
-    <div class="flex items-center gap-2 font-medium">
-      <Icon icon="mdi:cloud-sync-outline" class="size-5 text-primary" />
-      <span>高级设置</span>
-    </div>
-    <div class="flex items-center gap-2 text-xs text-muted-foreground">
-      <span>生图环境：{currentEnv === 'prod' ? '生产' : '开发'}</span>
-      <Icon
-        icon="mdi:chevron-down"
-        class="size-5 transition-transform {open ? 'rotate-180' : ''}"
-      />
-    </div>
-  </summary>
-  <div class="space-y-3 border-t px-4 py-4">
-    <div class="flex flex-wrap items-center gap-2">
-      <span class="font-medium">生图环境</span>
-      <Button
-        size="sm"
-        variant={currentEnv === 'prod' ? 'default' : 'outline'}
-        onclick={toggleEnv}
-      >
-        {currentEnv === 'prod' ? '生产' : '开发'}
-      </Button>
-      <span class="text-xs text-muted-foreground break-all">当前：{currentBaseUrl}</span>
-    </div>
-    <div class="flex flex-col gap-2 md:flex-row md:items-center">
-      <Input
-        bind:value={customBaseUrl}
-        placeholder="手动输入生图 API baseURL，例如 http://localhost:8080"
-        class="min-w-0 flex-1"
-      />
-      <div class="flex gap-2">
-        <Button variant="outline" size="sm" onclick={applyCustomBaseUrl}>应用</Button>
-        <Button variant="ghost" size="sm" onclick={resetBaseUrl}>重置</Button>
-      </div>
-    </div>
-    {#if $redirectLogs.length > 0}
-      <div class="mt-2 space-y-0.5 text-[10px] font-mono text-muted-foreground bg-muted/50 rounded p-2 max-h-24 overflow-y-auto">
-        {#each $redirectLogs as log}
-          <div>{log}</div>
-        {/each}
-      </div>
-    {/if}
+<div class="rounded-lg border bg-muted/30 text-sm p-4 space-y-3">
+  <div class="flex items-center gap-2 font-medium mb-1">
+    <Icon icon="mdi:cloud-sync-outline" class="size-5 text-primary" />
+    <span>高级设置</span>
+    <span class="ml-auto text-xs text-muted-foreground">生图环境：{currentEnv === 'prod' ? '生产' : '开发'}</span>
   </div>
-</details>
-
-<style>
-  summary::-webkit-details-marker {
-    display: none;
-  }
-</style>
+  <div class="flex flex-wrap items-center gap-2">
+    <span class="font-medium">环境切换</span>
+    <Button
+      size="sm"
+      variant={currentEnv === 'prod' ? 'default' : 'outline'}
+      onclick={toggleEnv}
+    >
+      {currentEnv === 'prod' ? '生产' : '开发'}
+    </Button>
+    <span class="text-xs text-muted-foreground break-all">当前：{currentBaseUrl}</span>
+  </div>
+  <div class="flex flex-col gap-2 md:flex-row md:items-center">
+    <Input
+      bind:value={customBaseUrl}
+      placeholder="手动输入生图 API baseURL，例如 http://localhost:8080"
+      class="min-w-0 flex-1"
+    />
+    <div class="flex gap-2">
+      <Button variant="outline" size="sm" onclick={applyCustomBaseUrl}>应用</Button>
+      <Button variant="ghost" size="sm" onclick={resetBaseUrl}>重置</Button>
+    </div>
+  </div>
+  {#if $redirectLogs.length > 0}
+    <div class="space-y-0.5 text-[10px] font-mono text-muted-foreground bg-muted/50 rounded p-2 max-h-24 overflow-y-auto">
+      {#each $redirectLogs as log}
+        <div>{log}</div>
+      {/each}
+    </div>
+  {/if}
+</div>
