@@ -1992,13 +1992,12 @@ function formatTime(ts: number) {
                       <tr class="border-b text-left text-muted-foreground">
                         <th class="py-1 pr-2">ID</th>
                         <th class="py-1 pr-2">UID</th>
-                        <th class="py-1 pr-2">类型</th>
                         <th class="py-1 pr-2">状态</th>
                         <th class="py-1 pr-2">创建</th>
                         <th class="py-1 pr-2">启动</th>
+                        <th class="py-1 pr-2">耗时</th>
                           <th class="py-1 pr-2">工作流</th>
                           <th class="py-1 pr-2">错误</th>
-                            <th class="py-1 pr-2">元数据</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2006,15 +2005,14 @@ function formatTime(ts: number) {
                         <tr class="border-b">
                           <td class="py-1 pr-2 font-mono">{item.id}</td>
                           <td class="py-1 pr-2">{item.user_id}</td>
-                          <td class="py-1 pr-2 text-xs">{item.type === 'img2img' ? '🖼️' : '📝'}</td>
                           <td class="py-1 pr-2">
                             <Badge variant={item.status === 'failed' ? 'destructive' : item.status === 'done' ? 'default' : item.status === 'running' ? 'default' : 'secondary'} class="text-[10px]">{item.status}</Badge>
                           </td>
                           <td class="py-1 pr-2 text-muted-foreground">{item.created_ago}s前</td>
                           <td class="py-1 pr-2 text-muted-foreground">{item.started_ago != null ? `${item.started_ago}s前` : '-'}</td>
+                          <td class="py-1 pr-2 text-muted-foreground">{item.duration != null ? `${item.duration}s` : '-'}</td>
                             <td class="py-1 pr-2 break-all max-w-[120px] text-muted-foreground text-[10px]">{item.workflow_path || '-'}</td>
                             <td class="py-1 pr-2 break-all max-w-xs text-destructive text-[10px]" title={item.error || ''}>{item.error || '-'}</td>
-                            <td class="py-1 pr-2 break-all max-w-[120px] text-muted-foreground text-[10px]">{item.meta_write ? `正向:${item.meta_write.prompt} 反向:${item.meta_write.negative} 原图1:${item.meta_write.image1} 原图2:${item.meta_write.image2}` : '-'}</td>
                         </tr>
                       {/each}
                     </tbody>
