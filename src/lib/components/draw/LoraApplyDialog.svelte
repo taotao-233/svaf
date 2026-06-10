@@ -7,7 +7,6 @@
   import * as Dialog from '$lib/components/ui/dialog';
   import * as Select from '$lib/components/ui/select';
   import { submitLora, getMyLoraSubmissions } from '$lib/draw/api/lora';
-  import { fetchWorkflows } from '$lib/draw/api/client';
   import type { LoraApplication } from '$lib/draw/types';
   import { forumToast } from '$lib/forum/stores/toast';
 
@@ -26,31 +25,14 @@
   let showMySubs = $state(false);
   let mySubs = $state<LoraApplication[]>([]);
   let mySubsLoading = $state(false);
-  let categories = $state<string[]>([]);
-
-  async function loadCategories() {
-    try {
-      const res = await fetchWorkflows(type);
-      categories = res.category_order;
-    } catch {}
-  }
 
   $effect(() => {
     if (open) {
-      loadCategories();
       showMySubs = false;
       url = '';
       name = '';
       category = '';
       trigger = '';
-    }
-  });
-
-  $effect(() => {
-    void type;
-    if (open) {
-      category = '';
-      loadCategories();
     }
   });
 
@@ -159,20 +141,7 @@
         <div class="grid grid-cols-2 gap-3">
           <div class="space-y-1.5">
             <Label class="text-xs">分类 <span class="text-destructive">*</span></Label>
-            <Select.Root bind:value={category}>
-              <Select.Trigger class="w-full h-8 text-xs">
-                {#if category}
-                  {category}
-                {:else}
-                  <span class="text-muted-foreground">选择分类</span>
-                {/if}
-              </Select.Trigger>
-              <Select.Content>
-                {#each categories as cat}
-                  <Select.Item value={cat} label={cat} />
-                {/each}
-              </Select.Content>
-            </Select.Root>
+            <Input bind:value={category} placeholder="异环、鸣潮、通用..." class="h-8 text-xs" />
           </div>
           <div class="space-y-1.5">
             <Label class="text-xs">类型 <span class="text-destructive">*</span></Label>
