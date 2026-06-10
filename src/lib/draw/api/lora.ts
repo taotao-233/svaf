@@ -44,3 +44,11 @@ export async function rejectLora(id: string, reason: string) {
     requiresAuth: true,
   });
 }
+
+export async function cancelLora(id: string) {
+  return drawRequest<{ ok: boolean }>('/api/lora/cancel', {
+    method: 'POST',
+    json: { id },
+    requiresAuth: true,
+  });
+}
