@@ -2,7 +2,7 @@
   import '../app.css';
   import '../app.css';
   import { page } from '$app/stores';
-  import { beforeNavigate, afterNavigate } from '$app/navigation';
+  import { beforeNavigate, afterNavigate, goto } from '$app/navigation';
   import { siteConfig } from '$lib/config/site';
   import BackToTop from '$lib/components/BackToTop.svelte';
   import NavBar from '$lib/components/NavBar.svelte';
@@ -50,6 +50,17 @@
       else setTimeout(() => { navigating = false; barWidth = 0; }, 150);
     }
     rafId = requestAnimationFrame(tick);
+  });
+
+  // 修复浏览器前进/后退时 SvelteKit 静态站不刷新内容的问题
+  $effect(() => {
+    const handler = () => {
+      if ($page.url.pathname + $page.url.search !== window.location.pathname + window.location.search) {
+        goto(window.location.pathname + window.location.search + window.location.hash, { noScroll: true });
+      }
+    };
+    window.addEventListener('popstate', handler);
+    return () => window.removeEventListener('popstate', handler);
   });
 </script>
 
